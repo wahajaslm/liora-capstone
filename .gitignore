@@ -1,0 +1,43 @@
+# Data directory (challenge raw and processed data)
+data/
+!data/.gitkeep
+!data/raw/.gitkeep
+!data/raw/images/.gitkeep
+!data/processed/.gitkeep
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+
+# PyTorch checkpoints and model weights
+*.pt
+*.pth
+*.bin
+*.onnx
+checkpoints/
+models/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Output figures
+reports/figures/*
+!reports/figures/.gitkeep
+
+# OS and IDE files
+.DS_Store
+.vscode/*
+!.vscode/settings.json
+.idea/
