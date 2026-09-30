@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from PIL import Image
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SRC_DIR)
@@ -37,3 +38,8 @@ def get_image_path(imageid, productid, split="image_train"):
     """Return the path for a product catalog image."""
     paths = get_data_paths()
     return os.path.join(paths[split], f"image_{imageid}_product_{productid}.jpg")
+
+
+def load_image(imageid, productid, split="image_train"):
+    """Load a product catalog image as a PIL Image."""
+    return Image.open(get_image_path(imageid, productid, split))
