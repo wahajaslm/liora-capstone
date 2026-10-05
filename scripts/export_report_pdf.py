@@ -236,14 +236,14 @@ def main() -> None:
     if args.mode in {"both", "with-code"}:
         write_pdf(
             notebook,
-            output_dir / "rakuten_report1_with_code.pdf",
+            output_dir / "01_dataviz_and_audit_with_code.pdf",
             include_code=True,
         )
 
     if args.mode in {"both", "without-code"}:
         write_pdf(
             notebook,
-            output_dir / "rakuten_report1_without_code.pdf",
+            output_dir / "01_dataviz_and_audit_without_code.pdf",
             include_code=False,
         )
 
