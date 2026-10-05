@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+"""Export the Rakuten report notebook as polished A4 PDFs."""
+
+from __future__ import annotations
+
+import argparse
+import copy
+from pathlib import Path
+
+import nbformat
+from bs4 import BeautifulSoup
+from nbconvert import HTMLExporter
+from nbconvert.preprocessors import ExecutePreprocessor
+from traitlets.config import Config
+
+try:
+    from weasyprint import CSS, HTML
+except ImportError as error:
+    raise SystemExit(
+        "WeasyPrint is required. Install the project requirements first:\n"
+        "  pip install -r requirements.txt"
+    ) from error
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+NOTEBOOK_CANDIDATES = (
+    PROJECT_ROOT / "notebooks" / "01_dataviz_and_audit.ipynb",
+)
+DEFAULT_NOTEBOOK = next(
+    (path for path in NOTEBOOK_CANDIDATES if path.exists()),
+    NOTEBOOK_CANDIDATES[0],
+)
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "reports" / "01_dataViz_and_audit"
+
+PRINT_CSS = """
+@page {
+    size: A4;
+    margin: 18mm 16mm 18mm 16mm;
+    @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        color: #6b7280;
+        font-family: Arial, sans-serif;
+        font-size: 8pt;
+    }
+}
+
+html, body {
+    color: #1f2937;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    line-height: 1.45;
+}
+
+body, .jp-Notebook, .jp-NotebookPanel-notebook {
+    margin: 0;
+    max-width: none;
+    padding: 0;
+    width: 100%;
+}
+
+h1, h2, h3, h4 {
+    color: #111827;
+    font-weight: 600;
+    page-break-after: avoid;
+}
+
+h1 {
+    border-bottom: 2px solid #991b1b;
+    font-size: 20pt;
+    margin: 0 0 8mm 0;
+    padding-bottom: 2mm;
+}
+
+.section-cell {
+    break-before: page;
+}
+
+h2 {
+    font-size: 15pt;
+    margin: 7mm 0 3mm 0;
+}
+
+h3 {
+    font-size: 12pt;
+    margin: 5mm 0 2mm 0;
+}
+
+p, li {
+    orphans: 3;
+    widows: 3;
+}
+
+table {
+    border-collapse: collapse;
+    break-inside: avoid;
+    font-size: 8.5pt;
+    margin: 4mm auto;
+    width: 100%;
+}
+
+th, td {
+    border: 0.5pt solid #d1d5db;
+    padding: 1.8mm 2mm;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+
+img, svg {
+    break-inside: avoid;
+    display: block;
+    height: auto;
+    margin: 3mm auto;
+    max-height: 225mm;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+figure, .jp-RenderedImage, .jp-OutputArea-output, .output_png {
+    break-inside: avoid;
+}
+
+.jp-Cell-inputWrapper, .jp-InputArea, .input_area {
+    break-inside: avoid;
+}
+
+pre, code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+pre {
+    background: #f8fafc;
+    border: 0.5pt solid #d1d5db;
+    border-radius: 3px;
+    font-size: 7.2pt;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    padding: 2.5mm;
+    white-space: pre-wrap;
+}
+
+.jp-InputPrompt, .jp-OutputPrompt, .prompt, .anchor-link {
+    display: none !important;
+}
+
+.jp-OutputArea, .output_area {
+    margin: 2mm 0 4mm 0;
+}
+
+.jp-RenderedHTMLCommon {
+    overflow: visible;
+}
+
+blockquote {
+    border-left: 3px solid #9ca3af;
+    color: #4b5563;
+    margin-left: 0;
+    padding-left: 4mm;
+}
+"""
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Create A4 PDF versions of the Rakuten EDA report."
+    )
+    parser.add_argument("--notebook", type=Path, default=DEFAULT_NOTEBOOK)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--mode",
+        choices=("both", "with-code", "without-code"),
+        default="both",
+    )
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Execute the notebook in memory before exporting it.",
+    )
+    return parser.parse_args()
+
+
+def load_notebook(path: Path, execute: bool) -> nbformat.NotebookNode:
+    notebook = nbformat.read(path, as_version=4)
+    if not execute:
+        return notebook
+
+    executor = ExecutePreprocessor(timeout=600, kernel_name="python3")
+    executor.preprocess(notebook, {"metadata": {"path": str(PROJECT_ROOT)}})
+    return notebook
+
+
+def notebook_html(notebook: nbformat.NotebookNode, include_code: bool) -> str:
+    config = Config()
+    config.HTMLExporter.exclude_input = not include_code
+    config.HTMLExporter.exclude_input_prompt = True
+    config.HTMLExporter.exclude_output_prompt = True
+    config.HTMLExporter.embed_images = True
+
+    exporter = HTMLExporter(config=config, template_name="lab")
+    html, _ = exporter.from_notebook_node(copy.deepcopy(notebook))
+
+    document = BeautifulSoup(html, "html.parser")
+    top_level_headings = document.find_all("h1")
+    for heading in top_level_headings[1:]:
+        cell = heading.find_parent(
+            lambda tag: "jp-Cell" in tag.get("class", [])
+        )
+        if cell is not None:
+            cell["class"] = [*cell.get("class", []), "section-cell"]
+
+    return str(document)
+
+
+def write_pdf(notebook: nbformat.NotebookNode, destination: Path, include_code: bool) -> None:
+    html = notebook_html(notebook, include_code)
+    document = HTML(string=html, base_url=str(PROJECT_ROOT))
+    document.write_pdf(destination, stylesheets=[CSS(string=PRINT_CSS)])
+    print(f"Created {destination}")
+
+
+def main() -> None:
+    args = parse_args()
+    notebook_path = args.notebook.resolve()
+    output_dir = args.output_dir.resolve()
+
+    if not notebook_path.exists():
+        raise SystemExit(f"Notebook not found: {notebook_path}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    notebook = load_notebook(notebook_path, args.execute)
+
+    if args.mode in {"both", "with-code"}:
+        write_pdf(
+            notebook,
+            output_dir / "rakuten_report1_with_code.pdf",
+            include_code=True,
+        )
+
+    if args.mode in {"both", "without-code"}:
+        write_pdf(
+            notebook,
+            output_dir / "rakuten_report1_without_code.pdf",
+            include_code=False,
+        )
+
+
+if __name__ == "__main__":
+    main()
