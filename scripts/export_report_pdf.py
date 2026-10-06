@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the Rakuten report notebook as polished A4 PDFs."""
+"""Export the Rakuten report notebook as A4 PDFs or printable HTML."""
 
 from __future__ import annotations
 
@@ -12,15 +12,6 @@ from bs4 import BeautifulSoup
 from nbconvert import HTMLExporter
 from nbconvert.preprocessors import ExecutePreprocessor
 from traitlets.config import Config
-
-try:
-    from weasyprint import CSS, HTML
-except ImportError as error:
-    raise SystemExit(
-        "WeasyPrint is required. Install the project requirements first:\n"
-        "  pip install -r requirements.txt"
-    ) from error
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK_CANDIDATES = (
@@ -92,6 +83,7 @@ p, li {
 
 table {
     border-collapse: collapse;
+    table-layout: fixed;
     break-inside: avoid;
     font-size: 8.5pt;
     margin: 4mm auto;
@@ -103,6 +95,8 @@ th, td {
     padding: 1.8mm 2mm;
     text-align: left;
     vertical-align: top;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 th {
@@ -171,6 +165,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--notebook", type=Path, default=DEFAULT_NOTEBOOK)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
+        "--format",
+        choices=("pdf", "html"),
+        default="pdf",
+        help="Use html to export without WeasyPrint and print to PDF in a browser.",
+    )
+    parser.add_argument(
         "--mode",
         choices=("both", "with-code", "without-code"),
         default="both",
@@ -216,9 +216,31 @@ def notebook_html(notebook: nbformat.NotebookNode, include_code: bool) -> str:
 
 
 def write_pdf(notebook: nbformat.NotebookNode, destination: Path, include_code: bool) -> None:
+    try:
+        from weasyprint import CSS, HTML
+    except (ImportError, OSError) as error:
+        raise SystemExit(
+            "WeasyPrint or one of its system libraries is unavailable.\n"
+            "On macOS, install the libraries with: brew install pango\n"
+            "Alternatively, rerun this command with --format html, then open\n"
+            "the exported HTML in a browser and print it to PDF.\n"
+            f"Details: {error}"
+        ) from error
+
     html = notebook_html(notebook, include_code)
     document = HTML(string=html, base_url=str(PROJECT_ROOT))
     document.write_pdf(destination, stylesheets=[CSS(string=PRINT_CSS)])
+    print(f"Created {destination}")
+
+
+def write_html(notebook: nbformat.NotebookNode, destination: Path, include_code: bool) -> None:
+    document = BeautifulSoup(notebook_html(notebook, include_code), "html.parser")
+    base = document.new_tag("base", href=PROJECT_ROOT.as_uri() + "/")
+    document.head.insert(0, base)
+    style = document.new_tag("style", media="print")
+    style.string = PRINT_CSS
+    document.head.append(style)
+    destination.write_text(str(document), encoding="utf-8")
     print(f"Created {destination}")
 
 
@@ -232,18 +254,19 @@ def main() -> None:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     notebook = load_notebook(notebook_path, args.execute)
+    writer = write_html if args.format == "html" else write_pdf
 
     if args.mode in {"both", "with-code"}:
-        write_pdf(
+        writer(
             notebook,
-            output_dir / "01_dataviz_and_audit_with_code.pdf",
+            output_dir / f"01_dataviz_and_audit_with_code.{args.format}",
             include_code=True,
         )
 
     if args.mode in {"both", "without-code"}:
-        write_pdf(
+        writer(
             notebook,
-            output_dir / "01_dataviz_and_audit_without_code.pdf",
+            output_dir / f"01_dataviz_and_audit_without_code.{args.format}",
             include_code=False,
         )
 
