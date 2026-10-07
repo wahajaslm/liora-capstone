@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+bau#!/usr/bin/env python3
 """Export the Rakuten report notebook as A4 PDFs or printable HTML."""
 
 from __future__ import annotations
