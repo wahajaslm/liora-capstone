@@ -14,6 +14,7 @@ def get_data_paths():
         "x_train": os.path.join(DATA_RAW_DIR, "X_train_update.csv"),
         "y_train": os.path.join(DATA_RAW_DIR, "Y_train_CVw08PX.csv"),
         "x_test": os.path.join(DATA_RAW_DIR, "X_test_update.csv"),
+        "processed": os.path.join(PROJECT_ROOT, "data", "processed"),
         "image_train": os.path.join(IMAGES_DIR, "image_train"),
         "image_test": os.path.join(IMAGES_DIR, "image_test"),
     }

@@ -17,7 +17,9 @@ rakuten-multimodal-classification/
 │
 ├── notebooks/                          # Sequenced by project milestones
 │   ├── 01_dataviz_and_audit.ipynb      # Milestone 1: Data visualization & audit
-│   └── 02_preprocessing.ipynb          # Milestone 2: Preprocessing pipeline
+│   ├── 02_preprocessing_text.ipynb     # Fixed text cleaning
+│   ├── 02_preprocessing_image.ipynb    # Fixed image preparation
+│   └── 02_preprocessing.ipynb          # Shared train/validation split
 │
 ├── src/                                # Reusable Python modules
 │   ├── __init__.py

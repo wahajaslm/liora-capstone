@@ -1,12 +1,18 @@
-from bs4 import BeautifulSoup
+import html
+import re
 import unicodedata
+
+from bs4 import BeautifulSoup
 
 
 def strip_html(text):
-    """Remove HTML tags from text."""
+    """Decode HTML entities and remove HTML tags while keeping their text."""
     if not isinstance(text, str):
         return ""
-    soup = BeautifulSoup(text, "html.parser")
+    decoded = html.unescape(html.unescape(text))
+    if not re.search(r"</?[a-zA-Z][^>]*>", decoded):
+        return decoded
+    soup = BeautifulSoup(decoded, "html.parser")
     return soup.get_text(separator=" ")
 
 
@@ -18,10 +24,16 @@ def normalize_accents(text):
 
 
 def clean_text(text, remove_accents=False):
-    """Clean text: remove HTML, optional accent removal, and lowercase."""
+    """Apply conservative cleaning while preserving product information."""
     if not isinstance(text, str):
         return ""
     text = strip_html(text)
     if remove_accents:
         text = normalize_accents(text)
     return " ".join(text.lower().split())
+
+
+def combine_text(designation, description):
+    """Combine cleaned designation and description without empty separators."""
+    parts = [part for part in (designation, description) if part]
+    return " ".join(parts)
