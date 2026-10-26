@@ -1,4 +1,4 @@
-bau#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Export the Rakuten report notebook as A4 PDFs or printable HTML."""
 
 from __future__ import annotations
@@ -35,16 +35,24 @@ PRINT_CSS = """
     }
 }
 
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
 html, body {
     color: #1f2937;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 10pt;
     line-height: 1.45;
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }
 
-body, .jp-Notebook, .jp-NotebookPanel-notebook {
+body, .jp-Notebook, .jp-NotebookPanel-notebook, .jp-Cell, .jp-Cell-outputWrapper, .jp-OutputArea, .jp-OutputArea-child, .jp-OutputArea-output {
+    box-sizing: border-box;
     margin: 0;
-    max-width: none;
+    max-width: 100%;
     padding: 0;
     width: 100%;
 }
@@ -52,6 +60,7 @@ body, .jp-Notebook, .jp-NotebookPanel-notebook {
 h1, h2, h3, h4 {
     color: #111827;
     font-weight: 600;
+    break-after: avoid;
     page-break-after: avoid;
 }
 
@@ -64,6 +73,7 @@ h1 {
 
 .section-cell {
     break-before: page;
+    page-break-before: always;
 }
 
 h2 {
@@ -83,19 +93,26 @@ p, li {
 
 table {
     border-collapse: collapse;
-    table-layout: fixed;
-    break-inside: avoid;
-    font-size: 8.5pt;
-    margin: 4mm auto;
+    table-layout: auto;
+    break-inside: auto;
+    font-size: 8pt;
+    margin: 4mm 0;
+    max-width: 100%;
     width: 100%;
+}
+
+tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 th, td {
     border: 0.5pt solid #d1d5db;
-    padding: 1.8mm 2mm;
+    padding: 1.5mm 1.8mm;
     text-align: left;
     vertical-align: top;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: break-word;
     white-space: normal;
 }
 
@@ -109,17 +126,19 @@ img, svg {
     display: block;
     height: auto;
     margin: 3mm auto;
-    max-height: 225mm;
-    max-width: 100%;
+    max-height: 220mm;
+    max-width: 100% !important;
     object-fit: contain;
 }
 
 figure, .jp-RenderedImage, .jp-OutputArea-output, .output_png {
     break-inside: avoid;
+    max-width: 100%;
 }
 
 .jp-Cell-inputWrapper, .jp-InputArea, .input_area {
     break-inside: avoid;
+    max-width: 100%;
 }
 
 pre, code {
@@ -160,10 +179,26 @@ blockquote {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create A4 PDF versions of the Rakuten EDA report."
+        description="Create A4 PDF or HTML versions of Rakuten notebooks."
     )
-    parser.add_argument("--notebook", type=Path, default=DEFAULT_NOTEBOOK)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "notebooks",
+        nargs="*",
+        type=Path,
+        help="One or more notebook paths to export.",
+    )
+    parser.add_argument(
+        "--notebook",
+        type=Path,
+        default=None,
+        help="Single notebook path to export (alternative to positional argument).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Custom output directory. Defaults to reports/<notebook_name>.",
+    )
     parser.add_argument(
         "--format",
         choices=("pdf", "html"),
@@ -244,30 +279,61 @@ def write_html(notebook: nbformat.NotebookNode, destination: Path, include_code:
     print(f"Created {destination}")
 
 
-def main() -> None:
-    args = parse_args()
-    notebook_path = args.notebook.resolve()
-    output_dir = args.output_dir.resolve()
+def get_default_output_dir(notebook_path: Path) -> Path:
+    stem = notebook_path.stem
+    if stem == "01_dataviz_and_audit":
+        return PROJECT_ROOT / "reports" / "01_dataViz_and_audit"
+    return PROJECT_ROOT / "reports" / stem
 
+
+def export_single_notebook(
+    notebook_path: Path,
+    output_dir: Path | None,
+    fmt: str,
+    mode: str,
+    execute: bool,
+) -> None:
     if not notebook_path.exists():
         raise SystemExit(f"Notebook not found: {notebook_path}")
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    notebook = load_notebook(notebook_path, args.execute)
-    writer = write_html if args.format == "html" else write_pdf
+    target_dir = output_dir or get_default_output_dir(notebook_path)
+    target_dir.mkdir(parents=True, exist_ok=True)
 
-    if args.mode in {"both", "with-code"}:
+    notebook = load_notebook(notebook_path, execute)
+    writer = write_html if fmt == "html" else write_pdf
+    stem = notebook_path.stem
+
+    if mode in {"both", "with-code"}:
         writer(
             notebook,
-            output_dir / f"01_dataviz_and_audit_with_code.{args.format}",
+            target_dir / f"{stem}_with_code.{fmt}",
             include_code=True,
         )
 
-    if args.mode in {"both", "without-code"}:
+    if mode in {"both", "without-code"}:
         writer(
             notebook,
-            output_dir / f"01_dataviz_and_audit_without_code.{args.format}",
+            target_dir / f"{stem}_without_code.{fmt}",
             include_code=False,
+        )
+
+
+def main() -> None:
+    args = parse_args()
+    notebook_paths = list(args.notebooks)
+    if args.notebook:
+        notebook_paths.append(args.notebook)
+
+    if not notebook_paths:
+        notebook_paths = [DEFAULT_NOTEBOOK]
+
+    for nb_path in notebook_paths:
+        export_single_notebook(
+            notebook_path=nb_path.resolve(),
+            output_dir=args.output_dir.resolve() if args.output_dir else None,
+            fmt=args.format,
+            mode=args.mode,
+            execute=args.execute,
         )
 
 
