@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import re
 from pathlib import Path
 
 import nbformat
@@ -218,14 +219,30 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def clean_printed_output(notebook: nbformat.NotebookNode) -> nbformat.NotebookNode:
+    """Drop lines with local file paths and write 1,948 as 1948 in printed output."""
+    home = str(Path.home())
+    for cell in notebook.cells:
+        kept_outputs = []
+        for output in cell.get("outputs", []):
+            if output.get("output_type") == "stream":
+                lines = output.get("text", "").splitlines(keepends=True)
+                text = "".join(line for line in lines if home not in line)
+                output["text"] = re.sub(r"(?<=\d),(?=\d{3}\b)", "", text)
+                if not output["text"].strip():
+                    continue
+            kept_outputs.append(output)
+        if "outputs" in cell:
+            cell["outputs"] = kept_outputs
+    return notebook
+
+
 def load_notebook(path: Path, execute: bool) -> nbformat.NotebookNode:
     notebook = nbformat.read(path, as_version=4)
-    if not execute:
-        return notebook
-
-    executor = ExecutePreprocessor(timeout=600, kernel_name="python3")
-    executor.preprocess(notebook, {"metadata": {"path": str(PROJECT_ROOT)}})
-    return notebook
+    if execute:
+        executor = ExecutePreprocessor(timeout=600, kernel_name="python3")
+        executor.preprocess(notebook, {"metadata": {"path": str(PROJECT_ROOT)}})
+    return clean_printed_output(notebook)
 
 
 def notebook_html(notebook: nbformat.NotebookNode, include_code: bool) -> str:
