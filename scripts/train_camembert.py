@@ -4,13 +4,6 @@ Uses the shared train/validation split. Validation is only scored, never used
 to choose settings. Run from the project root:
 
     python scripts/train_camembert.py
-
-Steps:
-    1. Load the text and turn category codes into numbers 0 to 26.
-    2. Load the pre-trained CamemBERT with a new 27-category output layer.
-    3. Train for 2 epochs. Every 500 steps, log train and validation loss.
-    4. After each epoch, score all validation products.
-    5. Save the validation probabilities and the trained model.
 """
 
 import time
@@ -34,20 +27,20 @@ EPOCH_PATH = PROJECT_ROOT / "data/processed/camembert_epoch_scores.csv"
 MODEL_DIR = PROJECT_ROOT / "models/camembert"
 
 MODEL_NAME = "almanach/camembert-base"
-MAX_LENGTH = 128         # tokens kept per product
-BATCH_SIZE = 16          # products per training step
+MAX_LENGTH = 128
+BATCH_SIZE = 16
 EPOCHS = 2
 LEARNING_RATE = 5e-5
-WARMUP_SHARE = 0.06      # share of steps where the learning rate grows from 0
+WARMUP_SHARE = 0.06
 SEED = 42
-LOG_EVERY = 500          # steps between two loss measurements
-LOSS_SAMPLE = 2000       # fixed validation products used for the validation loss curve
 
+# Train and validation loss are logged every LOG_EVERY steps,
+# the validation loss on a fixed sample of LOSS_SAMPLE products.
+LOG_EVERY = 500
+LOSS_SAMPLE = 2000
 
-# ---------- small helpers ----------
 
 def batches(texts, labels, batch_size, shuffle, rng=None):
-    """Yield (texts, labels) in groups of batch_size, shuffled if asked."""
     order = rng.permutation(len(texts)) if shuffle else np.arange(len(texts))
     for start in range(0, len(texts), batch_size):
         idx = order[start:start + batch_size]
@@ -55,19 +48,17 @@ def batches(texts, labels, batch_size, shuffle, rng=None):
 
 
 def encode(tokenizer, texts, device):
-    """Turn a list of texts into token IDs, cut to MAX_LENGTH."""
     return tokenizer(texts, truncation=True, max_length=MAX_LENGTH,
                      padding=True, return_tensors="pt").to(device)
 
 
 def cross_entropy(probabilities, labels):
-    """Average of -log(probability given to the true category)."""
+    """Mean of -log(probability given to the true class)."""
     true_probability = probabilities[np.arange(len(labels)), labels]
     return float(-np.log(np.clip(true_probability, 1e-12, None)).mean())
 
 
 def predict_probabilities(model, tokenizer, texts, device):
-    """Predict the 27 probabilities for each text, without training."""
     model.eval()
     probabilities = []
     with torch.no_grad():
@@ -75,15 +66,12 @@ def predict_probabilities(model, tokenizer, texts, device):
             logits = model(**encode(tokenizer, batch_texts, device)).logits
             probabilities.append(torch.softmax(logits, dim=1).cpu().numpy())
     if device == "mps":
-        torch.mps.empty_cache()  # free GPU memory used by evaluation
+        torch.mps.empty_cache()  # otherwise memory grows and macOS starts swapping
     model.train()
     return np.concatenate(probabilities)
 
 
-# ---------- main steps ----------
-
 def load_data(rng):
-    """Step 1: load texts and labels for train, validation and the loss sample."""
     data = pd.read_csv(DATA_PATH)
     data["text_combined"] = data["text_combined"].fillna("")
     train = data[data["split"] == "train"]
@@ -106,7 +94,6 @@ def load_data(rng):
 
 
 def load_model(n_classes, n_train, device):
-    """Step 2: pre-trained CamemBERT, optimiser and learning rate schedule."""
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=n_classes).to(device)
 
@@ -117,19 +104,17 @@ def load_model(n_classes, n_train, device):
 
 
 def training_step(model, tokenizer, optimizer, scheduler, batch_texts, batch_labels, device):
-    """Step 3: one update of the model on one batch. Returns the batch loss."""
     labels = torch.tensor(batch_labels, dtype=torch.long, device=device)
     loss = model(**encode(tokenizer, batch_texts, device), labels=labels).loss
-    loss.backward()                                            # how each weight should change
-    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)    # cap very large updates
-    optimizer.step()                                           # apply the change
-    scheduler.step()                                           # update the learning rate
-    optimizer.zero_grad()                                      # reset before the next batch
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    optimizer.step()
+    scheduler.step()
+    optimizer.zero_grad()
     return loss.item()
 
 
 def save_outputs(model, tokenizer, validation, classes, probabilities):
-    """Step 5: save validation probabilities (for fusion) and the trained model."""
     output = pd.DataFrame(probabilities, columns=[str(c) for c in classes])
     output.insert(0, "row_id", validation["row_id"].to_numpy())
     output.to_csv(OUTPUT_PATH, index=False)
@@ -156,7 +141,6 @@ def main():
     model.train()
 
     for epoch in range(1, EPOCHS + 1):
-        # Step 3: train on every training product once
         for batch_texts, batch_labels in batches(train_texts, train_labels, BATCH_SIZE, shuffle=True, rng=rng):
             running_loss += training_step(model, tokenizer, optimizer, scheduler, batch_texts, batch_labels, device)
             step += 1
@@ -176,7 +160,6 @@ def main():
                       f"validation loss {row['validation_loss']:.3f} | {(time.time() - start) / 60:.0f} min", flush=True)
                 running_loss, steps_since_log = 0.0, 0
 
-        # Step 4: score all validation products
         probabilities = predict_probabilities(model, tokenizer, validation_texts, device)
         predicted = classes[probabilities.argmax(axis=1)]
         scores = {
@@ -190,7 +173,6 @@ def main():
         print(f"epoch {epoch} done | validation loss {scores['validation_loss']:.3f} | "
               f"weighted F1 {scores['weighted_f1']:.4f} | macro F1 {scores['macro_f1']:.4f}", flush=True)
 
-    # Step 5: save the results of the last epoch
     save_outputs(model, tokenizer, validation, classes, probabilities)
     print(f"Saved validation probabilities and model. Total time: {(time.time() - start) / 60:.0f} min", flush=True)
 
