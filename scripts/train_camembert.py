@@ -96,8 +96,8 @@ def main():
     step = 0
     history, epoch_rows = [], []
     model.train()
+    running_loss, steps_since_log = 0.0, 0
     for epoch in range(1, EPOCHS + 1):
-        running_loss = 0.0
         for batch_texts, batch_labels in batches(train_texts, train_labels, BATCH_SIZE, shuffle=True, rng=rng):
             encoded = tokenizer(batch_texts, truncation=True, max_length=MAX_LENGTH,
                                 padding=True, return_tensors="pt").to(device)
@@ -111,12 +111,13 @@ def main():
 
             step += 1
             running_loss += loss.item()
+            steps_since_log += 1
             if step % LOG_EVERY == 0:
                 sample_probabilities = predict_probabilities(model, tokenizer, sample_texts, device)
                 row = {
                     "epoch": epoch,
                     "step": step,
-                    "train_loss": running_loss / LOG_EVERY,
+                    "train_loss": running_loss / steps_since_log,
                     "validation_loss": validation_loss(sample_probabilities, sample_labels),
                 }
                 history.append(row)
@@ -124,7 +125,7 @@ def main():
                 minutes = (time.time() - start) / 60
                 print(f"epoch {epoch} | step {step}/{total_steps} | train loss {row['train_loss']:.3f} | "
                       f"validation loss {row['validation_loss']:.3f} | {minutes:.0f} min", flush=True)
-                running_loss = 0.0
+                running_loss, steps_since_log = 0.0, 0
 
         probabilities = predict_probabilities(model, tokenizer, validation_texts, device)
         predicted = classes[probabilities.argmax(axis=1)]
