@@ -19,7 +19,12 @@ dist/
 *.bin
 *.onnx
 checkpoints/
-models/
+
+# Ignore models directory but keep CSV outputs and JSON metrics
+models/*
+!models/outputs/
+!models/outputs/*.csv
+!models/outputs/*.json
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
