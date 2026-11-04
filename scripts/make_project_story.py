@@ -23,8 +23,8 @@ FIG_DIR = OUT_DIR / "figures"
 INK, MUTED, LINE, ACCENT, ORANGE, RED = "#1f2933", "#6b7280", "#d1d5db", "#2b5c8f", "#e07b39", "#c0504d"
 
 # Results (weighted F1 on the 16984 validation products)
-CAMEMBERT_F1 = 0.8764
-FUSION_BEST_F1 = 0.8919
+CAMEMBERT_F1 = 0.8765
+FUSION_BEST_F1 = 0.8937
 
 
 # ---------- figure helpers ----------
@@ -137,6 +137,8 @@ def make_figures():
     # CamemBERT loss curves
     log_path = PROJECT_ROOT / "data/processed/camembert_training_log.csv"
     log = pd.read_csv(log_path)
+    first = (log["epoch"] == 2) & (log["step"] == log.loc[log["epoch"] == 2, "step"].min())
+    log.loc[first, "train_loss"] *= 500 / (log.loc[first, "step"] - 4246)  # see notebook 05
     fig, ax = plt.subplots(figsize=(6.2, 2.6))
     ax.plot(log["step"], log["train_loss"], color=ACCENT, marker="o", markersize=3, linewidth=2, label="Train loss")
     if "validation_loss" in log:
@@ -412,7 +414,7 @@ def build_pages(figs):
 <div class="page">
   <p class="step">STEP 3.3 &nbsp; 5 NOV</p>
   <h2>Deep learning for text: CamemBERT</h2>
-  <div class="main">CamemBERT reads words in context and reaches {CAMEMBERT_F1:.4f}, +3.3 points over the SVM.
+  <div class="main">CamemBERT reads words in context and reaches {CAMEMBERT_F1:.4f}, +3.4 points over the SVM.
   The largest gains are on the book categories.</div>
   <div class="cols">
     <div class="col">
@@ -432,7 +434,7 @@ def build_pages(figs):
     </div>
     <div class="col">
       {img(figs, "loss")}
-      <p class="note">Train and validation loss go down together: no sign of overfitting after 2 epochs.</p>
+      <p class="note">Validation loss keeps falling in both epochs (0.501, then 0.427): no overfitting. In epoch 2 train loss drops a little below it, as each product is seen a second time.</p>
       {img(figs, "camembert_gain", max_height="95mm")}
     </div>
   </div>
@@ -493,7 +495,7 @@ def build_pages(figs):
   {qa([("Is the fusion score optimistic?", "No. The Random Forest is scored with 5-fold cross-validation on the "
         "validation products: every product is predicted by a model that never saw it."),
        ("Why keep the SVM if CamemBERT is better?", "They make different errors: CamemBERT reads context, the SVM "
-        "catches rare exact words. With the SVM: 0.8919, without: 0.8829.")])}
+        "catches rare exact words. With the SVM: 0.8937, without: 0.8837.")])}
 </div>""")
 
     pages.append(f"""
@@ -531,7 +533,7 @@ def build_pages(figs):
       <h3>Scientific</h3>
       <ul>
         <li>Text carries most of the signal. Images alone are weak but help where text is weak.</li>
-        <li>Context matters: CamemBERT beats TF-IDF by 3.3 points, mostly on books.</li>
+        <li>Context matters: CamemBERT beats TF-IDF by 3.4 points, mostly on books.</li>
         <li>A learned combination beats a fixed weight: {FUSION_BEST_F1:.4f} against 0.8501.</li>
         <li>Several "obvious" ideas did not help when measured: text cleaning, and binary TF-IDF with 50000 features.</li>
       </ul>

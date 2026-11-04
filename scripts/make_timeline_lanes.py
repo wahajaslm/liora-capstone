@@ -61,9 +61,9 @@ LANES = {
                                             "SVM beats Logistic Regression and Naive Bayes: 0.8436."),
         (date(2026, 11, 2), "Word weights", "Mostly clear product words, but also seller names. "
                                             "Short titles without a book word fail."),
-        (date(2026, 11, 3), "CamemBERT", "French transformer, 2 epochs: 0.8764. Largest gains "
-                                         "on books (+9 to +15 points)."),
-        (date(2026, 11, 4), "CamemBERT re-run", "Logs train and validation loss to check for overfitting."),
+        (date(2026, 11, 3), "CamemBERT", "French transformer, 2 epochs: 0.8765. Largest gains "
+                                         "on books (+10 to +12 points)."),
+        (date(2026, 11, 4), "CamemBERT re-run", "Train and validation loss both fall: no overfitting. 0.8765."),
     ],
     "IMAGE": [
         (date(2026, 10, 7), "Duplicate audit", "Identical images found by comparing file hashes."),
@@ -82,7 +82,7 @@ LANES = {
                                               "Books gain the most."),
         (date(2026, 11, 3), "Random Forest", "Learns how to combine the probabilities. "
                                              "SVM + image: 0.8630."),
-        (date(2026, 11, 3), "Best model", "Random Forest on CamemBERT + SVM + image: 0.8919."),
+        (date(2026, 11, 3), "Best model", "Random Forest on CamemBERT + SVM + image: 0.8937."),
     ],
 }
 

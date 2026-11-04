@@ -22,11 +22,11 @@ RESULTS = {
     "SVM baseline": 0.8274,
     "SVM binary": 0.8313,
     "SVM optimised": 0.8436,
-    "CamemBERT": 0.8764,
-    "Fusion (RF)": 0.8919,
+    "CamemBERT": 0.8765,
+    "Fusion (RF)": 0.8937,
 }
 # F1 on Used Books (10), the hardest category
-USED_BOOKS = {"SVM": 0.566, "RF SVM + image": 0.663, "CamemBERT": 0.714}
+USED_BOOKS = {"SVM": 0.566, "RF SVM + image": 0.663, "CamemBERT": 0.689}
 
 INK = "#1f2933"
 MUTED = "#6b7280"
@@ -92,7 +92,7 @@ STAGES = [
         "when": "Step 3.3, 5 Nov",
         "did": "Fine-tuned a French transformer: 2 epochs, AdamW, warmup and linear decay, "
                "weight decay and dropout.",
-        "result": "Weighted F1 0.8764 (+3.3 over SVM). Book categories +9 to +15 points.",
+        "result": "Weighted F1 0.8765 (+3.4 over SVM). Book categories +10 to +12 points.",
         "qa": [
             ("Why better than TF-IDF?",
              "It reads words in context and in order. Book titles share words but not context."),
@@ -106,7 +106,7 @@ STAGES = [
         "when": "Step 3.3, 5 Nov",
         "did": "Combined text and image probabilities: a fixed weight, then Random Forest "
                "and Gradient Boosting trained on the probabilities.",
-        "result": "Fixed weight 0.8501. RF on SVM + image 0.8630. RF on CamemBERT + SVM + image 0.8919.",
+        "result": "Fixed weight 0.8501. RF on SVM + image 0.8630. RF on CamemBERT + SVM + image 0.8937.",
         "qa": [
             ("Is the fusion score optimistic?",
              "No. 5-fold CV on validation. The weight is chosen inside each fold."),
