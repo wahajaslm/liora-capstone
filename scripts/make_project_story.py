@@ -190,7 +190,7 @@ def make_figures():
     # Reused notebook figures
     figs["errors"] = notebook_image("03_text_baseline.ipynb", 31, "errors")
     figs["camembert_gain"] = notebook_image("05_text_camembert.ipynb", 9, "camembert_gain")
-    figs["fusion"] = notebook_image("06_fusion.ipynb", 12, "fusion")
+    figs["fusion"] = notebook_image("06_fusion.ipynb", 6, "fusion")
     figs["words"] = notebook_image("07_text_interpretability.ipynb", 7, "words")
     return figs
 
@@ -368,9 +368,8 @@ def build_pages(figs):
     </div>
     <div class="col">
       {img(figs, "baselines")}
-      {img(figs, "seeds")}
-      <p class="note">Binary TF-IDF (count a word once, however often it is repeated) looked +0.4 better on one
-      split. Over 5 splits the gain is 0.33, smaller than the 0.71 the score moves between splits.</p>
+      <p class="note">Two ideas did not clearly help: cleaning the text (0.8276 raw, 0.8274 clean) and binary
+      TF-IDF with 50000 features (+0.33 on average over 5 splits, while the score moves 0.71 between splits).</p>
     </div>
   </div>
   <div class="wide">{img(figs, "errors", max_height="62mm")}</div>
@@ -481,9 +480,9 @@ def build_pages(figs):
       <div class="concept"><b>Concept: stacking.</b> Each model gives 27 probabilities per product. A second model,
       here a Random Forest, takes these 81 numbers as input and learns when to trust which model, for example
       "for books, listen to the image more".</div>
-      <div class="concept"><b>Concept: Random Forest and Gradient Boosting.</b> A Random Forest trains 300 decision
-      trees on random samples and lets them vote (bagging). Gradient Boosting trains trees one after another,
-      each fixing the previous errors (boosting).</div>
+      <div class="concept"><b>Concept: Random Forest.</b> It trains 300 decision trees on random samples and lets
+      them vote (bagging). We also tried Gradient Boosting (trees trained one after another, each fixing the previous
+      errors): slightly lower and much slower.</div>
     </div>
     <div class="col">
       <div class="concept"><b>Concept: calibration.</b> An SVM gives scores, not probabilities. Calibration learns
@@ -495,7 +494,7 @@ def build_pages(figs):
   {qa([("Is the fusion score optimistic?", "No. The Random Forest is scored with 5-fold cross-validation on the "
         "validation products: every product is predicted by a model that never saw it."),
        ("Why keep the SVM if CamemBERT is better?", "They make different errors: CamemBERT reads context, the SVM "
-        "catches rare exact words. With the SVM: 0.8937, without: 0.8837.")])}
+        "catches rare exact words. Wargames, CamemBERT's weakest category, gains 7.8 points when both are combined.")])}
 </div>""")
 
     pages.append(f"""
