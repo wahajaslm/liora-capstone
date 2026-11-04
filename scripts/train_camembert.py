@@ -58,6 +58,8 @@ def predict_probabilities(model, tokenizer, texts, device):
                                 padding=True, return_tensors="pt").to(device)
             logits = model(**encoded).logits
             probabilities.append(torch.softmax(logits, dim=1).cpu().numpy())
+    if device == "mps":
+        torch.mps.empty_cache()  # free GPU memory used by evaluation
     model.train()
     return np.concatenate(probabilities)
 
