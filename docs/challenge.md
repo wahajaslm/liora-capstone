@@ -131,3 +131,89 @@ Following are the weighted-F1 score obtained using the benchmark models describe
 - **Images:** 0.5534
 
 As the benchmarking model using text is better performing, the Y benchmark file contains the output of the same.
+# Project schedule and deliverables
+
+Instructions from the project mentor. The document `docs/(EN) Projects_methodology_report.pdf` guides the writing of each report. These steps are meant to avoid last-minute problems.
+
+Project: Classification of Rakuten e-commerce products.
+
+## Step 0: Framing (first meeting)
+
+Deadline: 24 September.
+
+## Step 1: Data mining and data visualisation
+
+Deadline: 1 October.
+
+- Define the context and scope of the project. Take time to understand the project and the concepts it introduces.
+- Explore the dataset in depth to highlight its structure, difficulties and possible biases. A "Data Audit" template is available.
+- At least 5 relevant graphs built from the dataset. For each graph:
+  - a precise commentary that analyses the figure and gives a business opinion
+  - a validation of the observation by data manipulation or a statistical test
+
+## Step 2: Pre-processing and feature engineering
+
+Deadline: 8 October.
+
+- Clean the dataset and run the pre-processing steps, based on the observations from step 1.
+- Transform or add features if needed.
+- Goal: a dataset ready for in-depth analysis and modelling with machine learning and deep learning.
+
+**Rendering 1:** data exploration, data visualisation and pre-processing report.
+
+After rendering 1, the mentor sets up a GitHub repository for the group. It must follow the provided template and is sent to the jury with the final report.
+
+## Step 3: Modelling
+
+Deadline: 5 November.
+
+### Step 3.1: Baseline models
+
+Deadline: 15 October.
+
+- First modelling iterations with baseline models.
+- Analyse the first results. Is the approach relevant? Is the model relevant?
+
+### Step 3.2: Optimisation
+
+Deadline: 29 October.
+
+- Use machine learning and statistical metrics to better understand the model's results.
+- Try to improve the model with optimisation tools. Try other, more complex models and compare the results.
+
+### Step 3.3: Advanced modelling and interpretation
+
+Deadline: 5 November.
+
+- Advanced modelling: bagging, boosting and deep learning.
+- Interpretation: use interpretability tools to better understand the models' results.
+- Scientific and business conclusions based on the success or failure of the modelling.
+
+**Rendering 2:** modelling report.
+
+## Step 4: Final report and code on GitHub
+
+Deadline: 13 November.
+
+- Final report: combines renderings 1 and 2, and adds a conclusion and an opening.
+- Clean, commented code on GitHub. If time allows, refine the model and the modelling pipeline.
+
+## Step 5: Streamlit app and defense
+
+Deadline: 24 November.
+
+The document "Defense_Methodology" describes how the defense is organised.
+
+- 20 minutes of presentation, then 10 minutes of questions from the jury.
+- Format, one of:
+  - a PowerPoint presentation plus a Streamlit demo
+  - the whole presentation done in the Streamlit app
+- The Streamlit app must:
+  - look good, with several tabs
+  - be carefully coded, without re-training the model
+  - work without bugs
+
+## Report quality
+
+- Reports must include illustrations, a clear layout and no spelling mistakes.
+- If reports are not up to standard or not delivered on time, the project is not validated.

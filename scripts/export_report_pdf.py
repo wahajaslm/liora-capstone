@@ -220,14 +220,19 @@ def parse_args() -> argparse.Namespace:
 
 
 def clean_printed_output(notebook: nbformat.NotebookNode) -> nbformat.NotebookNode:
-    """Drop lines with local file paths and write 1,948 as 1948 in printed output."""
+    """Drop local file paths and progress bars, and write 1,948 as 1948 in printed output."""
     home = str(Path.home())
     for cell in notebook.cells:
         kept_outputs = []
         for output in cell.get("outputs", []):
             if output.get("output_type") == "stream":
                 lines = output.get("text", "").splitlines(keepends=True)
-                text = "".join(line for line in lines if home not in line)
+                text = "".join(
+                    line for line in lines
+                    if home not in line
+                    and not re.search(r"/home/|/content/|/Users/", line)
+                    and not re.search(r"\d+%\|", line)
+                )
                 output["text"] = re.sub(r"(?<=\d),(?=\d{3}\b)", "", text)
                 if not output["text"].strip():
                     continue
