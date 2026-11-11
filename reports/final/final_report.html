@@ -612,7 +612,7 @@ To capture semantic context and French syntactic nuance, we fine-tuned <strong>C
 </ul>
 
 <!-- SECTION 5 -->
-<h1>5. Computer Vision Progression &amp; Grad-CAM Analysis</h1>
+<h1>5. Computer Vision Progression</h1>
 
 <h2>5.1 Deep Learning Progression Across Backbones</h2>
 <p>
@@ -693,32 +693,6 @@ Classifying e-commerce products from images alone is inherently challenging due 
 <div class="callout callout-success">
     <strong>From the standard to the optimised ConvNeXt-Tiny:</strong> going from 03_5 (0.6739 Weighted F1) to 03_7 (0.6998) adds <strong>+2.59 points Weighted F1</strong> and <strong>+2.94 points Macro F1</strong>. This gain combines four changes: the smart white-border crop, layer-wise learning rates, the balanced sampler and flip TTA. The notebooks do not measure the crop on its own; flip TTA alone adds about 0.2 points (0.6980 &rarr; 0.6998).
 </div>
-
-<h2>5.2 Grad-CAM Visual Interpretability Analysis</h2>
-<p>
-To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented Gradient-weighted Class Activation Mapping (Grad-CAM) targeting the last ConvNeXt stage (<code>features[7]</code> in torchvision) [notebook <code>03_8_image_convnext_gradcam.ipynb</code>].
-</p>
-
-<figure class="report-figure">
-    <img src="figures/fig7_gradcam_correct.png" alt="Grad-CAM on correct predictions" style="max-height: 82mm;">
-    <figcaption class="report-caption"><strong>Figure 3:</strong> Grad-CAM for two correct predictions: a New Books cover (99.0% confidence) and a Textiles bed scene (96.9%). The heat sits on the cover title and on the pillow and bedding, not on the background.</figcaption>
-</figure>
-
-<ul>
-    <li><strong>Correct predictions (Figure 3):</strong> for the New Books cover, the heat sits on the title band; for Textiles, on the pillow and the bedding.</li>
-    <li><strong>Effect of smart cropping (Figure 4):</strong> without the crop, the book is small, the heat spreads over the white background and the model predicts Stationery (73.6%). With the crop, the heat moves to the cover title and the model predicts the correct Used Books (97.2%).</li>
-    <li><strong>Errors (Figure 5):</strong> a used book is predicted as New Books (94.4%): the model looks at the cover title, but a cover cannot show whether a book is used. A crayon set (Toys) is predicted as Stationery (98.0%), because crayons fit both categories.</li>
-</ul>
-
-<figure class="report-figure">
-    <img src="figures/fig9_gradcam_cropping.png" alt="Effect of smart cropping on Grad-CAM" style="max-height: 82mm;">
-    <figcaption class="report-caption"><strong>Figure 4:</strong> The same validation image without and with smart cropping. Without the crop the heat spreads over the white background; with it, the heat moves to the cover title.</figcaption>
-</figure>
-
-<figure class="report-figure">
-    <img src="figures/fig8_gradcam_errors.png" alt="Grad-CAM failure modes" style="max-height: 82mm;">
-    <figcaption class="report-caption"><strong>Figure 5:</strong> Grad-CAM on two errors: a used book predicted as New Books, and crayons (Toys) predicted as Stationery.</figcaption>
-</figure>
 
 <!-- SECTION 6 -->
 <h1>6. Multimodal Fusion &amp; Empirical Results</h1>
@@ -858,7 +832,7 @@ A pivotal question for e-commerce cataloging is how multimodal fusion performs w
 
 <h2>6.3 Per-Category Synergies and Delta Distribution</h2>
 <p>
-Comparing equal soft voting with CamemBERT across all 27 categories (Figure 6):
+Comparing equal soft voting with CamemBERT across all 27 categories (Figure 3):
 </p>
 <ul>
     <li><strong>22 of 27 categories improve</strong> over CamemBERT alone.</li>
@@ -868,17 +842,17 @@ Comparing equal soft voting with CamemBERT across all 27 categories (Figure 6):
 
 <figure class="report-figure">
     <img src="figures/fig3_multimodal_synergy_delta.png" alt="F1 gain per category">
-    <figcaption class="report-caption"><strong>Figure 6:</strong> F1 gain of equal soft voting over CamemBERT alone, per category. 22 categories improve and 5 drop slightly.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 3:</strong> F1 gain of equal soft voting over CamemBERT alone, per category. 22 categories improve and 5 drop slightly.</figcaption>
 </figure>
 
 <h2>6.4 Confusion Matrix and Error Patterns</h2>
 <p>
-Figure 7 displays the normalized confusion matrix of equal soft voting across all 27 categories:
+Figure 4 displays the normalized confusion matrix of equal soft voting across all 27 categories:
 </p>
 
 <figure class="report-figure">
     <img src="figures/fig10_confusion_matrix.png" alt="Normalized confusion matrix">
-    <figcaption class="report-caption"><strong>Figure 7:</strong> Normalized confusion matrix of equal soft voting on the 16,984 validation products.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 4:</strong> Normalized confusion matrix of equal soft voting on the 16,984 validation products.</figcaption>
 </figure>
 
 <table>
@@ -907,9 +881,9 @@ The confusion matrix confirms that remaining misclassifications are almost exclu
 </p>
 
 <!-- SECTION 7 -->
-<h1>7. Feature Attribution &amp; Model Interpretability</h1>
+<h1>7. Interpretation of Results</h1>
 
-<h2>7.1 Text Feature Attribution: Distinctive vs. Shared Vocabulary</h2>
+<h2>7.1 Text Interpretability: Which Words Decide</h2>
 <p>
 Inspecting LinearSVC feature weights [notebook <code>05_interpretability.ipynb</code>] reveals why classical linear models struggle on book sub-genres:
 </p>
@@ -920,11 +894,11 @@ Inspecting LinearSVC feature weights [notebook <code>05_interpretability.ipynb</
 
 <figure class="report-figure">
     <img src="figures/fig4_book_words.png" alt="Top SVM weights for book categories">
-    <figcaption class="report-caption"><strong>Figure 8:</strong> Top LinearSVC feature weights across the four book categories. Strong discriminative tokens are scarce; generic literary vocabulary is shared.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 5:</strong> Top LinearSVC feature weights across the four book categories. Strong discriminative tokens are scarce; generic literary vocabulary is shared.</figcaption>
 </figure>
 
 <p>
-<strong>CamemBERT word importance:</strong> CamemBERT has no word weights, so we remove one word at a time and measure how much its confidence drops (Figure 8b):
+<strong>CamemBERT word importance:</strong> CamemBERT has no word weights, so we remove one word at a time and measure how much its confidence drops (Figure 6):
 </p>
 <ul>
     <li><strong>Book Lots, CamemBERT right:</strong> for <em>les chemins de maison haute 1 &amp; 2</em>, removing <em>1</em> lowers its confidence by 18 points. CamemBERT reads <em>1 &amp; 2</em> as two volumes, a lot of several books. The SVM predicted Used Books.</li>
@@ -934,12 +908,38 @@ Inspecting LinearSVC feature weights [notebook <code>05_interpretability.ipynb</
 
 <figure class="report-figure">
     <img src="figures/fig11_camembert_words.png" alt="CamemBERT word importance for two titles">
-    <figcaption class="report-caption"><strong>Figure 8b:</strong> Drop in CamemBERT's confidence when each word is removed, for one title it classifies correctly (left) and one it gets wrong (right).</figcaption>
+    <figcaption class="report-caption"><strong>Figure 6:</strong> Drop in CamemBERT's confidence when each word is removed, for one title it classifies correctly (left) and one it gets wrong (right).</figcaption>
 </figure>
 
-<h2>7.2 What the Image Adds to the Fusion</h2>
+<h2>7.2 Image Interpretability: Grad-CAM</h2>
 <p>
-To see what each model brings, we compare equal soft voting with and without the image (Figure 9):
+To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented Gradient-weighted Class Activation Mapping (Grad-CAM) targeting the last ConvNeXt stage (<code>features[7]</code> in torchvision) [notebook <code>03_8_image_convnext_gradcam.ipynb</code>].
+</p>
+
+<figure class="report-figure">
+    <img src="figures/fig7_gradcam_correct.png" alt="Grad-CAM on correct predictions" style="max-height: 82mm;">
+    <figcaption class="report-caption"><strong>Figure 7:</strong> Grad-CAM for two correct predictions: a New Books cover (99.0% confidence) and a Textiles bed scene (96.9%). The heat sits on the cover title and on the pillow and bedding, not on the background.</figcaption>
+</figure>
+
+<ul>
+    <li><strong>Correct predictions (Figure 7):</strong> for the New Books cover, the heat sits on the title band; for Textiles, on the pillow and the bedding.</li>
+    <li><strong>Effect of smart cropping (Figure 8):</strong> without the crop, the book is small, the heat spreads over the white background and the model predicts Stationery (73.6%). With the crop, the heat moves to the cover title and the model predicts the correct Used Books (97.2%).</li>
+    <li><strong>Errors (Figure 9):</strong> a used book is predicted as New Books (94.4%): the model looks at the cover title, but a cover cannot show whether a book is used. A crayon set (Toys) is predicted as Stationery (98.0%), because crayons fit both categories.</li>
+</ul>
+
+<figure class="report-figure">
+    <img src="figures/fig9_gradcam_cropping.png" alt="Effect of smart cropping on Grad-CAM" style="max-height: 82mm;">
+    <figcaption class="report-caption"><strong>Figure 8:</strong> The same validation image without and with smart cropping. Without the crop the heat spreads over the white background; with it, the heat moves to the cover title.</figcaption>
+</figure>
+
+<figure class="report-figure">
+    <img src="figures/fig8_gradcam_errors.png" alt="Grad-CAM failure modes" style="max-height: 82mm;">
+    <figcaption class="report-caption"><strong>Figure 9:</strong> Grad-CAM on two errors: a used book predicted as New Books, and crayons (Toys) predicted as Stationery.</figcaption>
+</figure>
+
+<h2>7.3 What the Image Adds to the Fusion</h2>
+<p>
+To see what each model brings, we compare equal soft voting with and without the image (Figure 10):
 </p>
 <ul>
     <li><strong>Overall:</strong> without the image (CamemBERT and SVM only), soft voting scores 0.8864. With it, 0.8941 (+0.77 points).</li>
@@ -949,7 +949,7 @@ To see what each model brings, we compare equal soft voting with and without the
 
 <figure class="report-figure">
     <img src="figures/fig6_image_gain.png" alt="Image contribution per category" style="max-height: 95mm;">
-    <figcaption class="report-caption"><strong>Figure 9:</strong> F1 of equal soft voting with the image minus without the image, per category.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 10:</strong> F1 of equal soft voting with the image minus without the image, per category.</figcaption>
 </figure>
 
 <!-- SECTION 8 -->
