@@ -61,10 +61,11 @@ def benchmark_figure(fusion):
     f1_res_base = f1_score(res_base["true_prdtypecode"], res_base["predicted_prdtypecode"], average="weighted")
 
     rows = [
-        ("Zero-Rule Majority Baseline", 0.0258, "#94a3b8"),
+        ("Zero-Rule Majority Baseline (03)", 0.0258, "#94a3b8"),
         ("ResNet18, frozen (03)", f1_res_base, IMAGE_COLOR),
-        ("ResNet18, full fine-tuning (03_3)", image_f1("03_3_resnet18_full"), IMAGE_COLOR),
+        ("ResNet18, layer4 fine-tuning (03_2)", image_f1("03_2_resnet18_finetuned"), IMAGE_COLOR),
         ("ResNet18, augmentation (03_4)", image_f1("03_4_resnet18_regularized"), IMAGE_COLOR),
+        ("ResNet18, full fine-tuning (03_3)", image_f1("03_3_resnet18_full"), IMAGE_COLOR),
         ("ViT-B/16 (03_6)", image_f1("03_6_vit_b16"), IMAGE_COLOR),
         ("ResNet50 (03_5)", image_f1("03_5_resnet50"), IMAGE_COLOR),
         ("ConvNeXt-Tiny (03_5)", image_f1("03_5_convnext_tiny"), IMAGE_COLOR),
@@ -72,15 +73,17 @@ def benchmark_figure(fusion):
     ]
     f1 = fusion.set_index("Model")["Weighted F1"]
     rows += [
-        ("TF-IDF + SVM (03_2)", f1["SVM only (TF-IDF)"], TEXT_COLOR),
-        ("CamemBERT (03_3)", f1["CamemBERT only"], TEXT_COLOR),
+        ("Calibrated LinearSVC (03_2 / 04)", f1["SVM only (TF-IDF)"], TEXT_COLOR),
         ("Weighted soft voting (SVM + image) (04)", f1["Weighted soft voting (SVM + image)"], FUSION_COLOR),
+        ("CamemBERT (03_3)", f1["CamemBERT only"], TEXT_COLOR),
+        ("Weighted soft voting (CamemBERT + image) (04)", f1["Weighted soft voting (CamemBERT + image)"], FUSION_COLOR),
+        ("Weighted soft voting (all 3) (04)", f1["Weighted soft voting (CamemBERT + SVM + image)"], FUSION_COLOR),
         ("Soft voting, equal weights (all 3) (04)", f1["Soft voting, equal weights (CamemBERT + SVM + image)"], FUSION_COLOR),
         ("Random Forest (all 3) (04)", f1["Random Forest (CamemBERT + SVM + image)"], FUSION_COLOR),
     ]
     labels, values, colors = zip(*rows[::-1])
 
-    fig, ax = plt.subplots(figsize=(9, 5.8))
+    fig, ax = plt.subplots(figsize=(9, 6.4))
     bars = ax.barh(labels, values, color=colors, height=0.65)
     ax.bar_label(bars, labels=[f"{v:.4f}" for v in values], padding=4, fontsize=8, color=INK)
     ax.set_xlim(0.0, 1.02)
