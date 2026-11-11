@@ -324,17 +324,17 @@ tr:nth-child(even) td {
     <div class="cover-badge">Academic Project Report &bull; Data Science &amp; Machine Learning</div>
     <div class="cover-title">Rakuten France Multimodal Product Classification</div>
     <div class="cover-subtitle">
-        Systematic exploration, deep learning progression, Grad-CAM visual interpretability, and out-of-fold late fusion across 84,916 e-commerce listings.
+        Systematic exploration, deep learning progression, Grad-CAM visual interpretability, and late fusion by soft voting across 84,916 e-commerce listings.
     </div>
 
     <div class="cover-highlights">
         <h3>Key Results &amp; Findings</h3>
         <ul>
-            <li><strong>Strict Out-of-Fold Protocol:</strong> A locked 80/20 stratified split (67,932 train, 16,984 validation). Meta-models and soft-voting weights are evaluated with 5-fold cross-validation on the validation set, so no product is scored by a model that learned from it.</li>
-            <li><strong>Multimodal Synergy:</strong> Random Forest late fusion reaches <strong>0.8988 Weighted F1</strong> (Macro F1 0.8856, 1,715 errors), cutting 367 errors (&minus;17.6%) compared to CamemBERT alone and 941 errors (&minus;35.4%) compared to calibrated SVM.</li>
-            <li><strong>Rescuing Missing Descriptions:</strong> On listings lacking descriptions (35.0% of the catalog), fusion gains <strong>+3.90 F1 points over CamemBERT</strong> and <strong>+9.43 F1 points over LinearSVC</strong>, proving that the visual stream decisively compensates for text deficits.</li>
+            <li><strong>Strict Evaluation Protocol:</strong> A locked 80/20 stratified split (67,932 train, 16,984 validation). All models learn only from the training split. The final fusion, equal soft voting, learns nothing from the validation products, so its score compares directly with the single models.</li>
+            <li><strong>Multimodal Synergy:</strong> Equal soft voting of CamemBERT, the SVM and ConvNeXt reaches <strong>0.8941 Weighted F1</strong> (Macro F1 0.8826, 1,776 errors), cutting 306 errors (&minus;14.7%) compared to CamemBERT alone and 880 errors (&minus;33.1%) compared to calibrated SVM.</li>
+            <li><strong>Rescuing Missing Descriptions:</strong> On listings lacking descriptions (35.0% of the catalog), fusion gains <strong>+3.94 F1 points over CamemBERT</strong> and <strong>+9.47 F1 points over LinearSVC</strong>, proving that the visual stream decisively compensates for text deficits.</li>
             <li><strong>Computer Vision Optimization:</strong> From a frozen ResNet18 baseline (0.4818 F1) to ConvNeXt-Tiny with smart white-border cropping (0.6998 F1), <strong>+2.59 points</strong> over the standard ConvNeXt-Tiny.</li>
-            <li><strong>Interpretability:</strong> On the examples shown, Grad-CAM shows ConvNeXt looking at the product rather than the background. Random Forest feature importance relies 66% on CamemBERT, 23% on SVM, and 11% on ConvNeXt.</li>
+            <li><strong>Interpretability:</strong> On the examples shown, Grad-CAM shows ConvNeXt looking at the product rather than the background. Without the image, soft voting loses 0.77 points, mostly on New Books and Used Books.</li>
         </ul>
     </div>
 
@@ -346,7 +346,7 @@ tr:nth-child(even) td {
         </div>
         <div class="cover-meta-col">
             <strong>Evaluation Split:</strong> Fixed stratified 80/20 split (16,984 validation products)<br>
-            <strong>Core Models:</strong> Calibrated LinearSVC, CamemBERT-base, ConvNeXt-Tiny, Late Stacking<br>
+            <strong>Core Models:</strong> Calibrated LinearSVC, CamemBERT-base, ConvNeXt-Tiny, Soft Voting<br>
             <strong>Submission Date:</strong> November 2026
         </div>
     </div>
@@ -373,7 +373,7 @@ Modern e-commerce platforms process millions of seller-generated product listing
         <div class="metric-label">Missing Descriptions</div>
     </div>
     <div class="metric-card">
-        <div class="metric-value">0.8988</div>
+        <div class="metric-value">0.8941</div>
         <div class="metric-label">Final Weighted F1</div>
     </div>
 </div>
@@ -382,7 +382,7 @@ Modern e-commerce platforms process millions of seller-generated product listing
 Text is the strongest single modality for e-commerce classification. However, text models struggle when seller titles are brief, keyword-stuffed, or linguistically ambiguous. The visual stream provides essential orthogonal information in these failure modes—particularly across book, magazine, toy, and gaming categories.
 </p>
 <p>
-To establish an empirical floor, the <strong>Zero-Rule Majority Class Baseline</strong> assigns every sample to the largest category (Pool, code 2583). On the 16,984 validation products, this naive baseline achieves an accuracy of <strong>12.02%</strong>, a Weighted F1 of <strong>0.0258</strong>, and a Macro F1 of <strong>0.0080</strong>. Our final multimodal stacking architecture reaches <strong>0.8988 Weighted F1</strong> (Macro F1 0.8856), reducing errors to 1,715 listings.
+To establish an empirical floor, the <strong>Zero-Rule Majority Class Baseline</strong> assigns every sample to the largest category (Pool, code 2583). On the 16,984 validation products, this naive baseline achieves an accuracy of <strong>12.02%</strong>, a Weighted F1 of <strong>0.0258</strong>, and a Macro F1 of <strong>0.0080</strong>. Our final multimodal model, equal soft voting, reaches <strong>0.8941 Weighted F1</strong> (Macro F1 0.8826), reducing errors to 1,776 listings.
 </p>
 
 <figure class="report-figure">
@@ -504,16 +504,10 @@ To ensure absolute architectural reproducibility, the table below specifies the 
             <td>Cleaned and concatenated into <code>text_combined</code>; tokenized via SentencePiece BPE, truncated to 128 tokens.</td>
         </tr>
         <tr>
-            <td>Soft Voting (Equal / Weighted)</td>
+            <td><strong>Soft Voting (Equal / Weighted)</strong></td>
             <td><span class="badge-tag badge-fusion">Fusion</span></td>
             <td>Model output probabilities</td>
             <td>Probability vectors from CamemBERT (27), LinearSVC (27), and ConvNeXt-Tiny (27).</td>
-        </tr>
-        <tr class="highlight-row">
-            <td>Random Forest Stacking</td>
-            <td><span class="badge-tag badge-fusion">Fusion</span></td>
-            <td>Model output probabilities</td>
-            <td>Concatenated 81-dimensional vector: [<em>P</em><sub>CamemBERT</sub> &vert;&vert; <em>P</em><sub>SVM</sub> &vert;&vert; <em>P</em><sub>ConvNeXt</sub>].</td>
         </tr>
     </tbody>
 </table>
@@ -529,21 +523,16 @@ To ensure absolute architectural reproducibility, the table below specifies the 
 To prevent cross-split contamination, an SHA-256 hash deduplication pass verified that no training image file identical to a validation image was retained in the training set.
 </p>
 
-<h2>3.2 Rigorous Out-of-Fold Protocol for the 16,984 Validation Rows</h2>
+<h2>3.2 Evaluation Protocol for the 16,984 Validation Rows</h2>
 <p>
 A critical requirement of this project is absolute transparency regarding how the 16,984 validation products were handled:
 </p>
 <ol>
     <li><strong>Unimodal Training:</strong> The text classifiers (LinearSVC, CamemBERT) were trained only on the 67,932 training rows, and ConvNeXt-Tiny on the 62,312 training images left after removing duplicate and conflicting images. None of them ever saw a single row or image from the 16,984 validation set during training.</li>
     <li><strong>Probability Extraction:</strong> The trained unimodal models generated out-of-sample probability distributions for each of the 16,984 validation products.</li>
-    <li><strong>5-Fold Stratified CV on Validation:</strong> To train the meta-classifiers without data leakage, the 16,984 validation products were divided into <strong>5 stratified folds</strong> (<code>CV_FOLDS=5</code>, <code>random_state=42</code>):
-        <ul>
-            <li>In each fold, the meta-model (Random Forest) was trained on 4/5 of the validation rows (~13,587 products).</li>
-            <li>For weighted soft voting, the weight combinations (&alpha;) were chosen by grid search strictly on the 4/5 split.</li>
-            <li>Predictions were then made strictly on the held-out 1/5 fold (~3,397 products).</li>
-        </ul>
-    </li>
-    <li><strong>Final Metric Aggregation:</strong> The reported scores (0.8988 Weighted F1, 1,715 errors) are aggregated strictly from these <strong>out-of-fold predictions</strong> across all 16,984 products. No meta-model or voting rule was ever evaluated on rows it was fitted on.</li>
+    <li><strong>Equal Soft Voting:</strong> The three probability vectors are averaged with equal weights. Nothing is fitted on the validation products, so the score is computed directly on all 16,984 of them.</li>
+    <li><strong>Weighted Soft Voting (comparison only):</strong> The weights are chosen with 5-fold stratified CV on the validation products (<code>CV_FOLDS=5</code>, <code>random_state=42</code>): chosen on 4/5 of the rows (~13,587 products), applied to the held-out 1/5 (~3,397 products).</li>
+    <li><strong>Final Metric:</strong> The reported final score (0.8941 Weighted F1, 1,776 errors) is equal soft voting on all 16,984 validation products. No model and no fusion rule was trained on these products.</li>
 </ol>
 
 <h2>3.3 Text Preprocessing Pipeline</h2>
@@ -734,18 +723,15 @@ To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented 
 <!-- SECTION 6 -->
 <h1>6. Multimodal Fusion &amp; Empirical Results</h1>
 
-<h2>6.1 Fusion Formulations and Out-of-Fold Evaluation</h2>
+<h2>6.1 Fusion by Soft Voting</h2>
 <p>
-For every listing in the 16,984 validation set, our unimodal models yield three calibrated class probability distributions: <em>P</em><sub>SVM</sub>, <em>P</em><sub>CamemBERT</sub>, and <em>P</em><sub>ConvNeXt</sub>. We evaluated two late fusion strategies:
+For every listing in the 16,984 validation set, our unimodal models yield three calibrated class probability distributions: <em>P</em><sub>SVM</sub>, <em>P</em><sub>CamemBERT</sub>, and <em>P</em><sub>ConvNeXt</sub>. We combine them by soft voting:
 </p>
 <ol>
     <li><strong>Soft Voting:</strong> Linear combination of probabilities:
         <div class="math-display">ŷ = argmax<sub>c</sub> &sum;<sub>m</sub> w<sub>m</sub> P<sub>m</sub>(c)</div>
         We evaluated equal weighting (w = [1/3, 1/3, 1/3]) and grid search weighted voting over 5-fold CV.
-        <br><strong>Weighted soft voting:</strong> each model gets its own weight (steps of 0.1, summing to 1), chosen on the 4/5 part of each fold only. The folds chose 0.4 for CamemBERT, 0.3 for the SVM and 0.3 for the image (0.8920 Weighted F1). Equal weights score slightly higher (0.8941), because the 0.1 grid cannot choose 1/3. The gap is within noise, so tuning the weights adds nothing: the three models are already well balanced.</li>
-    <li><strong>Meta-Classifier Stacking (Random Forest):</strong> Concatenating the three distributions into an 81-dimensional meta-feature vector:
-        <div class="math-display"><b>x</b><sub>meta</sub> = [P<sub>CamemBERT</sub> &vert;&vert; P<sub>SVM</sub> &vert;&vert; P<sub>ConvNeXt</sub>] &isin; &reals;<sup>81</sup></div>
-        A Random Forest meta-classifier (300 trees, <code>min_samples_leaf=2</code>) learns non-linear gating functions to decide which modality to trust conditioned on predicted class confidence.</li>
+        <br><strong>Weighted soft voting:</strong> each model gets its own weight (steps of 0.1, summing to 1), chosen on the 4/5 part of each fold only. The folds chose 0.4 for CamemBERT, 0.3 for the SVM and 0.3 for the image (0.8920 Weighted F1). Equal weights score slightly higher (0.8941), because the 0.1 grid cannot choose 1/3. The gap is within noise, so tuning the weights adds nothing: the three models are already well balanced. Because its weights are chosen on validation results, weighted soft voting is shown only as a comparison; equal soft voting is the final model.</li>
 </ol>
 
 <table>
@@ -808,21 +794,13 @@ For every listing in the 16,984 validation set, our unimodal models yield three 
             <td class="num-col">+1.55</td>
             <td class="num-col">1,813</td>
         </tr>
-        <tr>
-            <td>Soft Voting, Equal Weights (all 3) (04)</td>
-            <td><span class="badge-tag badge-fusion">Fusion</span></td>
-            <td class="num-col">0.8941</td>
-            <td class="num-col">0.8826</td>
-            <td class="num-col">+1.76</td>
-            <td class="num-col">1,776</td>
-        </tr>
         <tr class="highlight-row">
-            <td><strong>Random Forest Stacking (all 3) (04)</strong></td>
+            <td><strong>Soft Voting, Equal Weights (all 3) (04)</strong></td>
             <td><span class="badge-tag badge-fusion">Fusion</span></td>
-            <td class="num-col"><strong>0.8988</strong></td>
-            <td class="num-col"><strong>0.8856</strong></td>
-            <td class="num-col"><strong>+2.23</strong></td>
-            <td class="num-col"><strong>1,715</strong></td>
+            <td class="num-col"><strong>0.8941</strong></td>
+            <td class="num-col"><strong>0.8826</strong></td>
+            <td class="num-col"><strong>+1.76</strong></td>
+            <td class="num-col"><strong>1,776</strong></td>
         </tr>
     </tbody>
 </table>
@@ -864,52 +842,43 @@ A pivotal question for e-commerce cataloging is how multimodal fusion performs w
             <td class="num-col">0.8349</td>
             <td class="num-col">&minus;0.0647</td>
         </tr>
-        <tr>
-            <td>Soft Voting Equal Weights</td>
-            <td class="num-col">0.8941</td>
-            <td class="num-col">0.9050</td>
-            <td class="num-col">0.8743</td>
-            <td class="num-col">&minus;0.0307</td>
-        </tr>
         <tr class="highlight-row">
-            <td><strong>Random Forest Stacking</strong></td>
-            <td class="num-col"><strong>0.8988</strong></td>
-            <td class="num-col"><strong>0.9120</strong></td>
-            <td class="num-col"><strong>0.8739</strong></td>
-            <td class="num-col"><strong>&minus;0.0381</strong></td>
+            <td><strong>Soft Voting Equal Weights</strong></td>
+            <td class="num-col"><strong>0.8941</strong></td>
+            <td class="num-col"><strong>0.9050</strong></td>
+            <td class="num-col"><strong>0.8743</strong></td>
+            <td class="num-col"><strong>&minus;0.0307</strong></td>
         </tr>
     </tbody>
 </table>
 
 <div class="callout callout-info">
-    <strong>Key Finding on Missing Descriptions:</strong> When descriptions are missing (35.0% of products), LinearSVC F1 plunges by <strong>9.72 points</strong> and CamemBERT drops by <strong>6.47 points</strong>. Meanwhile, the image model achieves <strong>0.7351 F1</strong> on these products (book covers and packaging are highly informative). Consequently, Random Forest fusion gains <strong>+3.90 F1 points over CamemBERT alone</strong> (0.8349 &rarr; 0.8739) and <strong>+9.43 F1 points over LinearSVC</strong>. The visual stream serves as a resilient safety net for title-only catalog listings.
+    <strong>Key Finding on Missing Descriptions:</strong> When descriptions are missing (35.0% of products), LinearSVC F1 plunges by <strong>9.72 points</strong> and CamemBERT drops by <strong>6.47 points</strong>. Meanwhile, the image model achieves <strong>0.7351 F1</strong> on these products (book covers and packaging are highly informative). Consequently, equal soft voting gains <strong>+3.94 F1 points over CamemBERT alone</strong> (0.8349 &rarr; 0.8743) and <strong>+9.47 F1 points over LinearSVC</strong>. The visual stream serves as a resilient safety net for title-only catalog listings.
 </div>
 
 <h2>6.3 Per-Category Synergies and Delta Distribution</h2>
 <p>
-Evaluating the Random Forest fusion against CamemBERT across all 27 categories reveals remarkable consistency with Figure 6:
+Comparing equal soft voting with CamemBERT across all 27 categories (Figure 6):
 </p>
 <ul>
-    <li><strong>25 of 27 categories improve</strong> over CamemBERT alone.</li>
-    <li><strong>1 category stays equal:</strong> PC Games (2905).</li>
-    <li><strong>Exactly 1 category exhibits a minor drop:</strong> Baby Socks (1301, &minus;0.3 F1 points / &minus;0.0033).</li>
-    <li><strong>Games (code 40):</strong> CamemBERT F1 is 0.7953, and Best Fusion reaches 0.8546, representing an exact gain of <strong>+5.9 F1 points (+0.0593)</strong>, matching Figure 6 perfectly.</li>
-    <li><strong>Largest gains:</strong> New Books (2705, <strong>+10.8 points</strong>), Used Books (10, <strong>+9.9</strong>), Wargames (1180, <strong>+9.3</strong>), Games (40, <strong>+5.9</strong>) and Outdoor Toys (1302, <strong>+4.3</strong>). The image tells new books from used ones, and the SVM catches the rare exact words of Wargames.</li>
+    <li><strong>22 of 27 categories improve</strong> over CamemBERT alone.</li>
+    <li><strong>5 categories drop slightly:</strong> RC Models (1300, &minus;1.9 points), Baby Socks (1301, &minus;0.6), Board Games (1281, &minus;0.4), Textiles (1920, &minus;0.2) and Toys (1280, &minus;0.1).</li>
+    <li><strong>Largest gains:</strong> Wargames (1180, <strong>+10.7 points</strong>, 0.614 &rarr; 0.720), Used Books (10, <strong>+8.6</strong>), New Books (2705, <strong>+8.6</strong>), Games (40, <strong>+5.9</strong>) and Outdoor Toys (1302, <strong>+4.4</strong>). The SVM catches the rare exact words of Wargames, and the image tells new books from used ones.</li>
 </ul>
 
 <figure class="report-figure">
     <img src="figures/fig3_multimodal_synergy_delta.png" alt="F1 gain per category">
-    <figcaption class="report-caption"><strong>Figure 6:</strong> F1 score delta of the Random Forest fusion over CamemBERT alone, per category. 25 categories improve, 1 stays equal, and 1 declines slightly (&minus;0.3).</figcaption>
+    <figcaption class="report-caption"><strong>Figure 6:</strong> F1 gain of equal soft voting over CamemBERT alone, per category. 22 categories improve and 5 drop slightly.</figcaption>
 </figure>
 
 <h2>6.4 Confusion Matrix and Error Patterns</h2>
 <p>
-Figure 7 displays the normalized out-of-fold confusion matrix of the Random Forest fusion across all 27 categories:
+Figure 7 displays the normalized confusion matrix of equal soft voting across all 27 categories:
 </p>
 
 <figure class="report-figure">
     <img src="figures/fig10_confusion_matrix.png" alt="Normalized confusion matrix">
-    <figcaption class="report-caption"><strong>Figure 7:</strong> Normalized confusion matrix of the Random Forest multimodal fusion (5-fold cross-validation out-of-fold predictions on the 16,984 validation products).</figcaption>
+    <figcaption class="report-caption"><strong>Figure 7:</strong> Normalized confusion matrix of equal soft voting on the 16,984 validation products.</figcaption>
 </figure>
 
 <table>
@@ -922,14 +891,14 @@ Figure 7 displays the normalized out-of-fold confusion matrix of the Random Fore
         </tr>
     </thead>
     <tbody>
-        <tr><td>Board Games (1281)</td><td>Toys (1280)</td><td class="num-col">61</td><td>Cardboard packaging overlap; toy brands marketing licensed board games.</td></tr>
-        <tr><td>Toys (1280)</td><td>Board Games (1281)</td><td class="num-col">56</td><td>Reciprocal packaging confusion between toy kits and family games.</td></tr>
-        <tr><td>Book Lots (2403)</td><td>Used Books (10)</td><td class="num-col">52</td><td>Volume bundles vs. single vintage novels; identical cover artwork.</td></tr>
-        <tr><td>Book Lots (2403)</td><td>Magazines (2280)</td><td class="num-col">41</td><td>Serialized paperbacks sharing periodical format and binding.</td></tr>
-        <tr><td>Furniture (1560)</td><td>Decor (2060)</td><td class="num-col">41</td><td>Small shelving, bedside lamps, and decorative storage.</td></tr>
-        <tr><td>Toys (1280)</td><td>Figurines (1140)</td><td class="num-col">39</td><td>Franchise action figures categorized ambiguously as toys vs. collectibles.</td></tr>
-        <tr><td>New Books (2705)</td><td>Used Books (10)</td><td class="num-col">38</td><td>Identical title strings; listing fails to specify condition in text.</td></tr>
-        <tr><td>Magazines (2280)</td><td>Book Lots (2403)</td><td class="num-col">38</td><td>Multi-issue magazine bundles classified as book lots.</td></tr>
+        <tr><td>Board Games (1281)</td><td>Toys (1280)</td><td class="num-col">82</td><td>Cardboard packaging overlap; toy brands marketing licensed board games.</td></tr>
+        <tr><td>Used Books (10)</td><td>New Books (2705)</td><td class="num-col">57</td><td>Identical title strings; listing fails to specify condition in text.</td></tr>
+        <tr><td>Book Lots (2403)</td><td>Used Books (10)</td><td class="num-col">50</td><td>Volume bundles vs. single vintage novels; identical cover artwork.</td></tr>
+        <tr><td>Book Lots (2403)</td><td>Magazines (2280)</td><td class="num-col">50</td><td>Serialized paperbacks sharing periodical format and binding.</td></tr>
+        <tr><td>Toys (1280)</td><td>RC Models (1300)</td><td class="num-col">43</td><td>Drone-like products appear in both toys and RC models.</td></tr>
+        <tr><td>Toys (1280)</td><td>Figurines (1140)</td><td class="num-col">42</td><td>Franchise action figures categorized ambiguously as toys vs. collectibles.</td></tr>
+        <tr><td>Used Books (10)</td><td>Magazines (2280)</td><td class="num-col">37</td><td>Old books and magazine issues with short, similar titles.</td></tr>
+        <tr><td>Furniture (1560)</td><td>Decor (2060)</td><td class="num-col">36</td><td>Small shelving, bedside lamps, and decorative storage.</td></tr>
     </tbody>
 </table>
 
@@ -968,24 +937,19 @@ Inspecting LinearSVC feature weights [notebook <code>05_interpretability.ipynb</
     <figcaption class="report-caption"><strong>Figure 8b:</strong> Drop in CamemBERT's confidence when each word is removed, for one title it classifies correctly (left) and one it gets wrong (right).</figcaption>
 </figure>
 
-<h2>7.2 Random Forest Meta-Feature Attribution</h2>
+<h2>7.2 What the Image Adds to the Fusion</h2>
 <p>
-Analyzing Gini feature importances within the Random Forest stacking meta-model (Figure 9) confirms how multimodal responsibilities are allocated:
+To see what each model brings, we compare equal soft voting with and without the image (Figure 9):
 </p>
 <ul>
-    <li><strong>CamemBERT:</strong> Accounts for <strong>66%</strong> of the feature importance, acting as the primary classifier.</li>
-    <li><strong>LinearSVC:</strong> Accounts for <strong>23%</strong> of feature importance, capturing exact rare n-grams and brand identifiers that subword embeddings occasionally dilute.</li>
-    <li><strong>ConvNeXt-Tiny:</strong> Accounts for <strong>11%</strong> of the importance. Removing it still costs 1.2 points, almost all on New Books (+11.4) and Used Books (+10.1) (Figure 10).</li>
+    <li><strong>Overall:</strong> without the image (CamemBERT and SVM only), soft voting scores 0.8864. With it, 0.8941 (+0.77 points).</li>
+    <li><strong>Where the image matters:</strong> mostly books and games: New Books (+8.9 points), Used Books (+7.4) and Games (+4.3). A cover shows what the text often does not say, such as whether a book is new or used.</li>
+    <li><strong>Elsewhere:</strong> the image adds little, and costs at most 2.0 points on a few categories.</li>
 </ul>
 
 <figure class="report-figure">
-    <img src="figures/fig5_fusion_importance.png" alt="Random Forest feature importance" style="max-height: 55mm;">
-    <figcaption class="report-caption"><strong>Figure 9:</strong> Relative share of Random Forest feature importance contributed by each model's probability outputs.</figcaption>
-</figure>
-
-<figure class="report-figure">
-    <img src="figures/fig6_image_gain.png" alt="Image contribution per category" style="max-width: 60%; max-height: 82mm;">
-    <figcaption class="report-caption"><strong>Figure 10:</strong> Category-level F1 delta of the Random Forest with the image stream versus without the image stream (5-fold cross-validation).</figcaption>
+    <img src="figures/fig6_image_gain.png" alt="Image contribution per category" style="max-height: 95mm;">
+    <figcaption class="report-caption"><strong>Figure 9:</strong> F1 of equal soft voting with the image minus without the image, per category.</figcaption>
 </figure>
 
 <!-- SECTION 8 -->
@@ -1014,19 +978,12 @@ Deploying multimodal deep learning models into production requires balancing acc
             <td>CPU only</td>
             <td>Real-time seller form autocomplete; bulk backfill of legacy text catalogs.</td>
         </tr>
-        <tr>
-            <td><strong>Tier 2: Intermediate</strong></td>
-            <td>Equal Soft Voting (all 3)</td>
-            <td class="num-col">0.8941</td>
-            <td>GPU for CamemBERT and ConvNeXt</td>
-            <td>Zero meta-model maintenance; high accuracy without training a secondary stacking layer.</td>
-        </tr>
         <tr class="highlight-row">
-            <td><strong>Tier 3: Maximum Accuracy</strong></td>
-            <td><strong>Random Forest Stacking (all 3)</strong></td>
-            <td class="num-col"><strong>0.8988</strong></td>
-            <td>GPU for CamemBERT and ConvNeXt, plus the Random Forest</td>
-            <td>Production marketplace pipeline; optimal resolution of ambiguous listings.</td>
+            <td><strong>Tier 2: Maximum Accuracy</strong></td>
+            <td><strong>Equal Soft Voting (all 3)</strong></td>
+            <td class="num-col"><strong>0.8941</strong></td>
+            <td>GPU for CamemBERT and ConvNeXt</td>
+            <td>Production marketplace pipeline; no extra model to train on top of the three models.</td>
         </tr>
     </tbody>
 </table>
@@ -1035,13 +992,13 @@ Deploying multimodal deep learning models into production requires balancing acc
     <strong>Recommended Production Architecture — Cascaded Inference:</strong> Rather than evaluating heavy neural pipelines on all listings, production systems should adopt a two-stage cascade:
     <ol>
         <li>Pass new listings through the calibrated LinearSVC. If the top class probability exceeds <strong>0.92</strong> (21% of the validation products), accept its prediction on CPU.</li>
-        <li>For remaining uncertain or title-only listings, invoke the CamemBERT and ConvNeXt-Tiny pipelines and route probabilities through the Random Forest. On the validation products this keeps the full Random Forest score (0.8987 against 0.8988) and runs the GPU models on 79% of products, saving about 21% of GPU work.</li>
+        <li>For remaining uncertain or title-only listings, invoke the CamemBERT and ConvNeXt-Tiny pipelines and combine the three models by equal soft voting. On the validation products this keeps the full soft voting score (0.8940 against 0.8941) and runs the GPU models on 79% of products, saving about 21% of GPU work.</li>
     </ol>
 </div>
 
 <h2>8.2 Project Conclusion</h2>
 <p>
-This project demonstrates that while text is the dominant modality for e-commerce categorization, computer vision provides a vital, non-redundant signal that compensates for real-world catalog imperfections. By pairing rigorous data hygiene (locked stratified split, deduplication, smart white-border cropping) with modern deep learning backbones (CamemBERT, ConvNeXt-Tiny) and out-of-fold late fusion, we advanced classification performance from a naive baseline of <strong>0.0258 F1</strong> to a robust <strong>0.8988 Weighted F1</strong> (0.8856 Macro F1). The full pipeline is open, reproducible, and readily adaptable for production deployment.
+This project demonstrates that while text is the dominant modality for e-commerce categorization, computer vision provides a vital, non-redundant signal that compensates for real-world catalog imperfections. By pairing rigorous data hygiene (locked stratified split, deduplication, smart white-border cropping) with modern deep learning backbones (CamemBERT, ConvNeXt-Tiny) and late fusion by equal soft voting, we advanced classification performance from a naive baseline of <strong>0.0258 F1</strong> to a robust <strong>0.8941 Weighted F1</strong> (0.8826 Macro F1). The full pipeline is open, reproducible, and readily adaptable for production deployment.
 </p>
 
 </body>

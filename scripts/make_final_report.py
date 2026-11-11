@@ -83,7 +83,6 @@ def benchmark_figure(fusion):
         ("CamemBERT (03_3)", f1["CamemBERT only"], TEXT_COLOR),
         ("Weighted soft voting (SVM + image) (04)", f1["Weighted soft voting (SVM + image)"], FUSION_COLOR),
         ("Soft voting, equal weights (all 3) (04)", f1["Soft voting, equal weights (CamemBERT + SVM + image)"], FUSION_COLOR),
-        ("Random Forest (all 3) (04)", f1["Random Forest (CamemBERT + SVM + image)"], FUSION_COLOR),
     ]
     labels, values, colors = zip(*rows[::-1])
 
@@ -140,62 +139,61 @@ def class_figure():
     return save(fig, "fig2_class_distribution")
 
 
-def gain_figure():
-    per_class = pd.read_csv(OUTPUTS / "04_fusion_per_class.csv").sort_values("Gain")
-    labels = [f"{n} ({c})" for n, c in zip(per_class["Category"], per_class["Code"])]
-    gain = per_class["Gain"] * 100
-
-    fig, ax = plt.subplots(figsize=(9, 6.5))
-    bars = ax.barh(labels, gain, color=[RED if g < 0 else IMAGE_COLOR for g in gain], height=0.7)
-    ax.bar_label(bars, labels=[f"{g:+.1f}" for g in gain], padding=3, fontsize=7.5, color=INK)
-    ax.axvline(0, color=INK, linewidth=0.8)
-    ax.tick_params(axis="y", labelsize=8)
-    style(ax, "F1 gain of the Random Forest fusion over CamemBERT alone, per category",
-          "Gain in F1 points")
-    return save(fig, "fig3_multimodal_synergy_delta")
-
-
-def confusion_matrix_figure():
-    from src.categories import CATEGORY_NAMES
-
-    processed_path = PROJECT_ROOT / "data/processed/text_train_processed.csv"
-    if not processed_path.exists():
-        print("Skipping CM figure (text_train_processed.csv not found)")
-        return None
-
-    data = pd.read_csv(processed_path)
+def validation_probabilities():
+    """True labels and the three models' probabilities for the 16984 validation products."""
+    data = pd.read_csv(PROJECT_ROOT / "data/processed/text_train_processed.csv", usecols=["row_id", "prdtypecode", "split"])
     val = data[data["split"] == "validation"]
     classes = np.sort(data["prdtypecode"].unique())
-    classes_str = [str(c) for c in classes]
+    columns = [str(c) for c in classes]
 
-    cam_df = pd.read_csv(PROJECT_ROOT / "data/processed/camembert_validation_probabilities.csv")
-    svm_df = pd.read_csv(PROJECT_ROOT / "data/processed/text_validation_probabilities.csv")
-    img_df = pd.read_csv(OUTPUTS / "03_7_convnext_tiny_optimized_validation_predictions.csv")
+    def load(path, prefix=""):
+        frame = pd.read_csv(path)
+        frame.columns = [c.strip() for c in frame.columns]
+        return val[["row_id"]].merge(frame, on="row_id")[[prefix + c for c in columns]].to_numpy()
 
-    P_cam = val[["row_id"]].merge(cam_df, on="row_id")[classes_str].to_numpy()
-    P_svm = val[["row_id"]].merge(svm_df, on="row_id")[classes_str].to_numpy()
-    P_img = val[["row_id"]].merge(img_df, on="row_id")[[f"prob_{c}" for c in classes]].to_numpy()
-    y_true = val["prdtypecode"].to_numpy()
+    P_cam = load(PROJECT_ROOT / "data/processed/camembert_validation_probabilities.csv")
+    P_svm = load(PROJECT_ROOT / "data/processed/text_validation_probabilities.csv")
+    P_img = load(OUTPUTS / "03_7_convnext_tiny_optimized_validation_predictions.csv", "prob_")
+    return val["prdtypecode"].to_numpy(), classes, P_cam, P_svm, P_img
 
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.model_selection import StratifiedKFold
-    X_all = np.hstack([P_cam, P_svm, P_img])
-    folds = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    y_pred = np.zeros_like(y_true)
 
-    for train_idx, test_idx in folds.split(X_all, y_true):
-        rf = RandomForestClassifier(n_estimators=300, min_samples_leaf=2, n_jobs=-1, random_state=42)
-        rf.fit(X_all[train_idx], y_true[train_idx])
-        y_pred[test_idx] = rf.predict(X_all[test_idx])
+def per_category_bars(gain, title, xlabel, name):
+    from src.categories import CATEGORY_NAMES
 
-    cm = confusion_matrix(y_true, y_pred, labels=classes)
+    gain = gain.sort_values()
+    fig, ax = plt.subplots(figsize=(9, 6.5))
+    bars = ax.barh([f"{CATEGORY_NAMES[c]} ({c})" for c in gain.index], gain.values,
+                   color=[RED if g < 0 else IMAGE_COLOR for g in gain.values], height=0.7)
+    ax.bar_label(bars, labels=[f"{g:+.1f}" for g in gain.values], padding=3, fontsize=7.5, color=INK)
+    ax.axvline(0, color=INK, linewidth=0.8)
+    ax.tick_params(axis="y", labelsize=8)
+    style(ax, title, xlabel)
+    return save(fig, name)
+
+
+def fusion_figures():
+    """Per-category gain over CamemBERT, image contribution and confusion matrix of equal soft voting."""
+    from src.categories import CATEGORY_NAMES
+
+    y, classes, P_cam, P_svm, P_img = validation_probabilities()
+    vote = classes[(P_cam + P_svm + P_img).argmax(axis=1)]
+    vote_without_image = classes[(P_cam + P_svm).argmax(axis=1)]
+    camembert = classes[P_cam.argmax(axis=1)]
+    per_class = lambda pred: pd.Series(f1_score(y, pred, average=None, labels=classes) * 100, index=classes)
+
+    per_category_bars(per_class(vote) - per_class(camembert),
+                      "F1 gain of equal soft voting over CamemBERT alone, per category",
+                      "Gain in F1 points", "fig3_multimodal_synergy_delta")
+    per_category_bars(per_class(vote) - per_class(vote_without_image),
+                      "What the image adds to equal soft voting, per category",
+                      "F1 with image minus F1 without image (points)", "fig6_image_gain")
+
+    cm = confusion_matrix(y, vote, labels=classes)
     cm_norm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-
     fig, ax = plt.subplots(figsize=(10, 8.5), constrained_layout=True)
     im = ax.imshow(cm_norm, interpolation="nearest", cmap=plt.cm.Blues)
     cbar = ax.figure.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.ax.set_ylabel("Recall (Normalized)", rotation=-90, va="bottom", fontsize=9)
-
     labels = [f"{CATEGORY_NAMES[c]} ({c})" for c in classes]
     ax.set_xticks(np.arange(len(classes)))
     ax.set_yticks(np.arange(len(classes)))
@@ -203,8 +201,7 @@ def confusion_matrix_figure():
     ax.set_yticklabels(labels, fontsize=7.5)
     ax.set_xlabel("Predicted Category", fontsize=10, fontweight="bold")
     ax.set_ylabel("True Category", fontsize=10, fontweight="bold")
-    ax.set_title("Normalized Confusion Matrix — Random Forest Fusion (5-Fold CV OOF)", fontsize=11, fontweight="bold", pad=12)
-
+    ax.set_title("Normalized Confusion Matrix — Equal Soft Voting", fontsize=11, fontweight="bold", pad=12)
     return save(fig, "fig10_confusion_matrix")
 
 
@@ -234,24 +231,18 @@ def main():
 
     benchmark_figure(fusion)
     class_figure()
-    gain_figure()
+    fusion_figures()
 
     # Interpretability figures from notebook 05
     interpretability = "notebooks/05_interpretability.ipynb"
     notebook_figure(interpretability, "book_codes = [10, 2705, 2403, 2280]", "fig4_book_words")
     notebook_figure(interpretability, "def word_importance", "fig11_camembert_words")
-    notebook_figure(interpretability, "How much the Random Forest relies on each model", "fig5_fusion_importance")
-    notebook_figure(interpretability, "What the image adds to the fusion", "fig6_image_gain")
 
     # Grad-CAM figures from notebook 03_8 (kept as files if the notebook has no saved plots)
     gradcam = "notebooks/03_image_fineTuning/03_8_image_convnext_gradcam.ipynb"
     notebook_figure(gradcam, "SUCCESS_ROW_IDS", "fig7_gradcam_correct")
     notebook_figure(gradcam, "ERROR_ROW_IDS", "fig8_gradcam_errors")
     notebook_figure(gradcam, "CROP_ROW_ID =", "fig9_gradcam_cropping")
-
-    # Generate Confusion Matrix figure if not already present
-    if not (FIG_DIR / "fig10_confusion_matrix.png").exists():
-        confusion_matrix_figure()
 
     print("Compiling PDF with WeasyPrint...")
     HTML(filename=str(REPORT_DIR / "final_report.html")).write_pdf(REPORT_DIR / "final_report.pdf")
