@@ -227,6 +227,37 @@ def notebook_figure(notebook_relpath, marker, name):
     return None
 
 
+def keep_headings_with_content(html):
+    """Wrap each heading, its short intro line and the first table or figure in one unbreakable block.
+
+    This stops a page from ending with a heading whose content starts on the next page.
+    """
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(html, "html.parser")
+    blocks = ("table", "figure", "ul", "ol", "div")
+    for heading in soup.find_all(["h1", "h2", "h3"]):
+        if heading.find_parent("div", class_="keep-together"):
+            continue
+        group = [heading]
+        nxt = heading.find_next_sibling()
+        while nxt is not None and nxt.name in ("h1", "h2", "h3"):
+            group.append(nxt)
+            nxt = nxt.find_next_sibling()
+        if nxt is not None and nxt.name == "p":
+            group.append(nxt)
+            after = nxt.find_next_sibling()
+            if after is not None and after.name in blocks and nxt.get_text(strip=True).endswith(":"):
+                group.append(after)
+        elif nxt is not None and nxt.name in blocks:
+            group.append(nxt)
+        wrapper = soup.new_tag("div", attrs={"class": "keep-together", "style": "page-break-inside: avoid;"})
+        heading.insert_before(wrapper)
+        for element in group:
+            wrapper.append(element.extract())
+    return str(soup)
+
+
 def main():
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     fusion = pd.read_csv(OUTPUTS / "04_fusion_results.csv")
@@ -247,7 +278,8 @@ def main():
     notebook_figure(gradcam, "CROP_ROW_ID =", "fig9_gradcam_cropping")
 
     print("Compiling PDF with WeasyPrint...")
-    HTML(filename=str(REPORT_DIR / "final_report.html")).write_pdf(REPORT_DIR / "final_report.pdf")
+    html = keep_headings_with_content((REPORT_DIR / "final_report.html").read_text())
+    HTML(string=html, base_url=str(REPORT_DIR)).write_pdf(REPORT_DIR / "final_report.pdf")
     print(f"Successfully generated {REPORT_DIR / 'final_report.pdf'}")
 
 
