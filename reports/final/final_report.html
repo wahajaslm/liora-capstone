@@ -742,7 +742,8 @@ For every listing in the 16,984 validation set, our unimodal models yield three 
 <ol>
     <li><strong>Soft Voting:</strong> Linear combination of probabilities:
         <div class="math-display">ŷ = argmax<sub>c</sub> &sum;<sub>m</sub> w<sub>m</sub> P<sub>m</sub>(c)</div>
-        We evaluated equal weighting (w = [1/3, 1/3, 1/3]) and grid search weighted voting over 5-fold CV.</li>
+        We evaluated equal weighting (w = [1/3, 1/3, 1/3]) and grid search weighted voting over 5-fold CV.
+        <br><strong>Weighted soft voting:</strong> each model gets its own weight (steps of 0.1, summing to 1), chosen on the 4/5 part of each fold only. The folds chose 0.4 for CamemBERT, 0.3 for the SVM and 0.3 for the image (0.8920 Weighted F1). Equal weights score slightly higher (0.8941), because the 0.1 grid cannot choose 1/3. The gap is within noise, so tuning the weights adds nothing: the three models are already well balanced.</li>
     <li><strong>Meta-Classifier Stacking (Random Forest):</strong> Concatenating the three distributions into an 81-dimensional meta-feature vector:
         <div class="math-display"><b>x</b><sub>meta</sub> = [P<sub>CamemBERT</sub> &vert;&vert; P<sub>SVM</sub> &vert;&vert; P<sub>ConvNeXt</sub>] &isin; &reals;<sup>81</sup></div>
         A Random Forest meta-classifier (300 trees, <code>min_samples_leaf=2</code>) learns non-linear gating functions to decide which modality to trust conditioned on predicted class confidence.</li>
@@ -952,6 +953,20 @@ Inspecting LinearSVC feature weights [notebook <code>05_interpretability.ipynb</
 <figure class="report-figure">
     <img src="figures/fig4_book_words.png" alt="Top SVM weights for book categories">
     <figcaption class="report-caption"><strong>Figure 8:</strong> Top LinearSVC feature weights across the four book categories. Strong discriminative tokens are scarce; generic literary vocabulary is shared.</figcaption>
+</figure>
+
+<p>
+<strong>CamemBERT word importance:</strong> CamemBERT has no word weights, so we remove one word at a time and measure how much its confidence drops (Figure 8b):
+</p>
+<ul>
+    <li><strong>Book Lots, CamemBERT right:</strong> for <em>les chemins de maison haute 1 &amp; 2</em>, removing <em>1</em> lowers its confidence by 18 points. CamemBERT reads <em>1 &amp; 2</em> as two volumes, a lot of several books. The SVM predicted Used Books.</li>
+    <li><strong>Wargames, CamemBERT wrong:</strong> for <em>chaos chosen age of sigmar</em>, the word <em>of</em> matters most (33 points). CamemBERT reads <em>age of …</em> like a video game title and predicts Games. The SVM gets it right through <em>sigmar</em>, a rare Warhammer word.</li>
+    <li>The two text models fail on different products, which is why combining them helps.</li>
+</ul>
+
+<figure class="report-figure">
+    <img src="figures/fig11_camembert_words.png" alt="CamemBERT word importance for two titles">
+    <figcaption class="report-caption"><strong>Figure 8b:</strong> Drop in CamemBERT's confidence when each word is removed, for one title it classifies correctly (left) and one it gets wrong (right).</figcaption>
 </figure>
 
 <h2>7.2 Random Forest Meta-Feature Attribution</h2>
