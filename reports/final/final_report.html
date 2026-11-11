@@ -779,6 +779,25 @@ For every listing in the 16,984 validation set, our unimodal models yield three 
     </tbody>
 </table>
 
+<h3>Comparison with the challenge benchmark</h3>
+<p>
+The benchmark scores come from Rakuten's hidden test set; ours come from our validation split. They are not directly comparable, but both are held-out products from the same catalogue, so the comparison gives an indication.
+</p>
+<table>
+    <thead>
+        <tr>
+            <th>Modality</th>
+            <th>Challenge benchmark (hidden test set)</th>
+            <th>Ours (validation split)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Text</td><td>0.8113 (CNN on titles only)</td><td>0.8765 (CamemBERT, title and description)</td></tr>
+        <tr><td>Image</td><td>0.5534 (ResNet50)</td><td>0.6998 (ConvNeXt-Tiny)</td></tr>
+        <tr class="highlight-row"><td>Text and image</td><td>Not provided</td><td><strong>0.8941</strong> (equal soft voting)</td></tr>
+    </tbody>
+</table>
+
 <h2>6.2 Performance Gain on Products With vs. Without Description</h2>
 <p>
 A pivotal question for e-commerce cataloging is how multimodal fusion performs when product descriptions are absent. The empirical breakdown across the 16,984 validation listings provides unambiguous evidence:
