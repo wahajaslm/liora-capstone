@@ -328,11 +328,11 @@ tr:nth-child(even) td {
     <div class="cover-highlights">
         <h3>Key Results &amp; Findings</h3>
         <ul>
-            <li><strong>Strict Out-of-Fold Protocol:</strong> A locked 80/20 stratified split (67,932 train, 16,984 validation). Meta-models and soft-voting weights are strictly evaluated via 5-fold cross-validation on the validation set, ensuring zero data leakage.</li>
+            <li><strong>Strict Out-of-Fold Protocol:</strong> A locked 80/20 stratified split (67,932 train, 16,984 validation). Meta-models and soft-voting weights are evaluated with 5-fold cross-validation on the validation set, so no product is scored by a model that learned from it.</li>
             <li><strong>Multimodal Synergy:</strong> Random Forest late fusion reaches <strong>0.8988 Weighted F1</strong> (Macro F1 0.8856, 1,715 errors), cutting 367 errors (&minus;17.6%) compared to CamemBERT alone and 941 errors (&minus;35.4%) compared to calibrated SVM.</li>
-            <li><strong>Rescuing Missing Descriptions:</strong> On listings lacking descriptions (35.0% of the catalog), fusion gains <strong>+3.98 F1 points over CamemBERT</strong> and <strong>+9.60 F1 points over LinearSVC</strong>, proving that the visual stream decisively compensates for text deficits.</li>
-            <li><strong>Computer Vision Optimization:</strong> From a frozen ResNet18 baseline (0.4818 F1) to ConvNeXt-Tiny with smart white-border cropping (0.6998 F1). Cropping alone contributes <strong>+2.59 percentage points F1</strong>.</li>
-            <li><strong>Interpretability:</strong> Grad-CAM highlights that ConvNeXt learns semantically meaningful item regions rather than background artifacts. Random Forest feature importance relies 66% on CamemBERT, 23% on SVM, and 11% on ConvNeXt.</li>
+            <li><strong>Rescuing Missing Descriptions:</strong> On listings lacking descriptions (35.0% of the catalog), fusion gains <strong>+3.90 F1 points over CamemBERT</strong> and <strong>+9.43 F1 points over LinearSVC</strong>, proving that the visual stream decisively compensates for text deficits.</li>
+            <li><strong>Computer Vision Optimization:</strong> From a frozen ResNet18 baseline (0.4818 F1) to ConvNeXt-Tiny with smart white-border cropping (0.6998 F1), <strong>+2.59 points</strong> over the standard ConvNeXt-Tiny.</li>
+            <li><strong>Interpretability:</strong> On the examples shown, Grad-CAM shows ConvNeXt looking at the product rather than the background. Random Forest feature importance relies 66% on CamemBERT, 23% on SVM, and 11% on ConvNeXt.</li>
         </ul>
     </div>
 
@@ -408,7 +408,7 @@ The dataset comprises <strong>84,916 labelled products</strong> across 27 produc
 </figure>
 
 <div class="callout callout-warning">
-    <strong>Disclaimer on Category Nomenclature:</strong> The challenge dataset identifies classes solely by numeric codes (<code>prdtypecode</code>). Category names throughout this report (e.g., <em>Used Books</em>, <em>Wargames</em>, <em>Pool &amp; Garden</em>) represent our team's interpretation based on systematic catalog exploration and domain analysis; they are not official Rakuten labels.
+    <strong>Disclaimer on Category Nomenclature:</strong> The challenge dataset identifies classes solely by numeric codes (<code>prdtypecode</code>). Category names throughout this report (e.g., <em>Used Books</em>, <em>Wargames</em>, <em>Pool</em>) represent our team's interpretation based on systematic catalog exploration and domain analysis; they are not official Rakuten labels.
 </div>
 
 <table>
@@ -423,39 +423,39 @@ The dataset comprises <strong>84,916 labelled products</strong> across 27 produc
         </tr>
     </thead>
     <tbody>
-        <tr><td>10</td><td>Used Books</td><td class="num-col">2,914</td><td class="num-col">583</td><td class="num-col">3.43%</td><td class="num-col">67.2%</td></tr>
-        <tr><td>40</td><td>Video Games</td><td class="num-col">4,357</td><td class="num-col">871</td><td class="num-col">5.13%</td><td class="num-col">32.6%</td></tr>
-        <tr><td>50</td><td>Game Accessories</td><td class="num-col">1,693</td><td class="num-col">339</td><td class="num-col">1.99%</td><td class="num-col">18.4%</td></tr>
-        <tr><td>60</td><td>Consoles</td><td class="num-col">1,018</td><td class="num-col">204</td><td class="num-col">1.20%</td><td class="num-col">19.7%</td></tr>
-        <tr><td>1140</td><td>Figurines &amp; Collectibles</td><td class="num-col">2,703</td><td class="num-col">541</td><td class="num-col">3.18%</td><td class="num-col">24.5%</td></tr>
-        <tr><td>1160</td><td>Trading Cards</td><td class="num-col">3,887</td><td class="num-col">777</td><td class="num-col">4.58%</td><td class="num-col">16.3%</td></tr>
-        <tr><td>1180</td><td>Wargames &amp; Miniatures</td><td class="num-col">764</td><td class="num-col">153</td><td class="num-col">0.90%</td><td class="num-col">21.8%</td></tr>
-        <tr><td>1280</td><td>Toys &amp; Kids</td><td class="num-col">4,853</td><td class="num-col">971</td><td class="num-col">5.71%</td><td class="num-col">31.2%</td></tr>
-        <tr><td>1281</td><td>Board Games</td><td class="num-col">2,006</td><td class="num-col">401</td><td class="num-col">2.36%</td><td class="num-col">28.9%</td></tr>
-        <tr><td>1300</td><td>RC Models &amp; Vehicles</td><td class="num-col">5,063</td><td class="num-col">1,013</td><td class="num-col">5.96%</td><td class="num-col">15.1%</td></tr>
-        <tr><td>1301</td><td>Baby Socks &amp; Clothing</td><td class="num-col">848</td><td class="num-col">170</td><td class="num-col">1.00%</td><td class="num-col">14.7%</td></tr>
-        <tr><td>1302</td><td>Outdoor Toys &amp; Sports</td><td class="num-col">2,515</td><td class="num-col">503</td><td class="num-col">2.96%</td><td class="num-col">22.4%</td></tr>
-        <tr><td>1320</td><td>Baby Gear &amp; Nursery</td><td class="num-col">2,883</td><td class="num-col">577</td><td class="num-col">3.40%</td><td class="num-col">18.6%</td></tr>
-        <tr><td>1560</td><td>Furniture &amp; Bedding</td><td class="num-col">5,108</td><td class="num-col">1,022</td><td class="num-col">6.02%</td><td class="num-col">16.2%</td></tr>
-        <tr><td>1920</td><td>Bedding &amp; Pillows</td><td class="num-col">4,183</td><td class="num-col">837</td><td class="num-col">4.93%</td><td class="num-col">21.3%</td></tr>
-        <tr><td>1940</td><td>Food &amp; Groceries</td><td class="num-col">808</td><td class="num-col">162</td><td class="num-col">0.95%</td><td class="num-col">18.9%</td></tr>
-        <tr><td>2060</td><td>Interior Decor &amp; Lamps</td><td class="num-col">5,008</td><td class="num-col">1,002</td><td class="num-col">5.90%</td><td class="num-col">12.1%</td></tr>
-        <tr><td>2220</td><td>Pet Supplies</td><td class="num-col">1,015</td><td class="num-col">203</td><td class="num-col">1.20%</td><td class="num-col">16.8%</td></tr>
-        <tr><td>2280</td><td>Magazines &amp; Periodicals</td><td class="num-col">4,884</td><td class="num-col">977</td><td class="num-col">5.75%</td><td class="num-col">74.1%</td></tr>
-        <tr><td>2403</td><td>Book Lots &amp; Bundles</td><td class="num-col">4,775</td><td class="num-col">955</td><td class="num-col">5.62%</td><td class="num-col">97.4%</td></tr>
-        <tr><td>2462</td><td>Video Game Consoles &amp; Retro</td><td class="num-col">1,387</td><td class="num-col">277</td><td class="num-col">1.63%</td><td class="num-col">25.3%</td></tr>
-        <tr><td>2522</td><td>Stationery &amp; Supplies</td><td class="num-col">5,003</td><td class="num-col">1,001</td><td class="num-col">5.89%</td><td class="num-col">19.2%</td></tr>
-        <tr><td>2582</td><td>Garden Tools &amp; Hardware</td><td class="num-col">2,654</td><td class="num-col">531</td><td class="num-col">3.13%</td><td class="num-col">21.5%</td></tr>
-        <tr class="highlight-row"><td>2583</td><td>Pool &amp; Garden Accessories</td><td class="num-col">10,209</td><td class="num-col">2,042</td><td class="num-col">12.02%</td><td class="num-col">13.8%</td></tr>
-        <tr><td>2585</td><td>DIY &amp; Plumbing</td><td class="num-col">2,544</td><td class="num-col">509</td><td class="num-col">3.00%</td><td class="num-col">17.6%</td></tr>
-        <tr><td>2705</td><td>New Books &amp; Novels</td><td class="num-col">2,787</td><td class="num-col">557</td><td class="num-col">3.28%</td><td class="num-col">82.5%</td></tr>
-        <tr><td>2905</td><td>PC Video Games</td><td class="num-col">878</td><td class="num-col">176</td><td class="num-col">1.03%</td><td class="num-col">29.1%</td></tr>
+        <tr><td>10</td><td>Used Books</td><td class="num-col">3,116</td><td class="num-col">623</td><td class="num-col">3.67%</td><td class="num-col">89.2%</td></tr>
+        <tr><td>40</td><td>Games</td><td class="num-col">2,508</td><td class="num-col">502</td><td class="num-col">2.95%</td><td class="num-col">65.5%</td></tr>
+        <tr><td>50</td><td>Game Accessories</td><td class="num-col">1,681</td><td class="num-col">336</td><td class="num-col">1.98%</td><td class="num-col">28.3%</td></tr>
+        <tr><td>60</td><td>Consoles</td><td class="num-col">832</td><td class="num-col">166</td><td class="num-col">0.98%</td><td class="num-col">16.0%</td></tr>
+        <tr><td>1140</td><td>Figurines</td><td class="num-col">2,671</td><td class="num-col">534</td><td class="num-col">3.15%</td><td class="num-col">64.6%</td></tr>
+        <tr><td>1160</td><td>Cards</td><td class="num-col">3,953</td><td class="num-col">791</td><td class="num-col">4.66%</td><td class="num-col">91.2%</td></tr>
+        <tr><td>1180</td><td>Wargames</td><td class="num-col">764</td><td class="num-col">153</td><td class="num-col">0.90%</td><td class="num-col">80.0%</td></tr>
+        <tr><td>1280</td><td>Toys</td><td class="num-col">4,870</td><td class="num-col">974</td><td class="num-col">5.74%</td><td class="num-col">21.9%</td></tr>
+        <tr><td>1281</td><td>Board Games</td><td class="num-col">2,070</td><td class="num-col">414</td><td class="num-col">2.44%</td><td class="num-col">23.8%</td></tr>
+        <tr><td>1300</td><td>RC Models</td><td class="num-col">5,045</td><td class="num-col">1,009</td><td class="num-col">5.94%</td><td class="num-col">23.3%</td></tr>
+        <tr><td>1301</td><td>Baby Socks</td><td class="num-col">807</td><td class="num-col">161</td><td class="num-col">0.95%</td><td class="num-col">13.0%</td></tr>
+        <tr><td>1302</td><td>Outdoor Toys</td><td class="num-col">2,491</td><td class="num-col">498</td><td class="num-col">2.93%</td><td class="num-col">11.1%</td></tr>
+        <tr><td>1320</td><td>Baby</td><td class="num-col">3,241</td><td class="num-col">648</td><td class="num-col">3.82%</td><td class="num-col">34.0%</td></tr>
+        <tr><td>1560</td><td>Furniture</td><td class="num-col">5,073</td><td class="num-col">1,015</td><td class="num-col">5.97%</td><td class="num-col">3.5%</td></tr>
+        <tr><td>1920</td><td>Textiles</td><td class="num-col">4,303</td><td class="num-col">861</td><td class="num-col">5.07%</td><td class="num-col">4.8%</td></tr>
+        <tr><td>1940</td><td>Food</td><td class="num-col">803</td><td class="num-col">161</td><td class="num-col">0.95%</td><td class="num-col">5.6%</td></tr>
+        <tr><td>2060</td><td>Decor</td><td class="num-col">4,993</td><td class="num-col">999</td><td class="num-col">5.88%</td><td class="num-col">5.7%</td></tr>
+        <tr><td>2220</td><td>Pets</td><td class="num-col">824</td><td class="num-col">165</td><td class="num-col">0.97%</td><td class="num-col">8.0%</td></tr>
+        <tr><td>2280</td><td>Magazines</td><td class="num-col">4,760</td><td class="num-col">952</td><td class="num-col">5.61%</td><td class="num-col">93.3%</td></tr>
+        <tr><td>2403</td><td>Book Lots</td><td class="num-col">4,774</td><td class="num-col">955</td><td class="num-col">5.62%</td><td class="num-col">97.4%</td></tr>
+        <tr><td>2462</td><td>Used Games</td><td class="num-col">1,421</td><td class="num-col">284</td><td class="num-col">1.67%</td><td class="num-col">96.3%</td></tr>
+        <tr><td>2522</td><td>Stationery</td><td class="num-col">4,989</td><td class="num-col">998</td><td class="num-col">5.88%</td><td class="num-col">23.8%</td></tr>
+        <tr><td>2582</td><td>Garden Furniture</td><td class="num-col">2,589</td><td class="num-col">518</td><td class="num-col">3.05%</td><td class="num-col">2.4%</td></tr>
+        <tr class="highlight-row"><td>2583</td><td>Pool</td><td class="num-col">10,209</td><td class="num-col">2,042</td><td class="num-col">12.02%</td><td class="num-col">8.8%</td></tr>
+        <tr><td>2585</td><td>Garden Tools</td><td class="num-col">2,496</td><td class="num-col">499</td><td class="num-col">2.94%</td><td class="num-col">7.9%</td></tr>
+        <tr><td>2705</td><td>New Books</td><td class="num-col">2,761</td><td class="num-col">552</td><td class="num-col">3.25%</td><td class="num-col">37.1%</td></tr>
+        <tr><td>2905</td><td>PC Games</td><td class="num-col">872</td><td class="num-col">174</td><td class="num-col">1.03%</td><td class="num-col">0.0%</td></tr>
     </tbody>
 </table>
 
 <h2>2.2 Text Exploration: Vocabulary, Lengths, and Missingness</h2>
 <ul>
-    <li><strong>Title (<code>designation</code>):</strong> Available for 100% of products. The median length is 11 words (interquartile range 7–16; mean 13.2 words). Titles are dense with brand names, model numbers, and technical attributes.</li>
+    <li><strong>Title (<code>designation</code>):</strong> Available for 100% of products. The median length is 11 words (interquartile range 7–14; mean 11.6 words). Titles are dense with brand names, model numbers, and technical attributes.</li>
     <li><strong>Description (<code>description</code>):</strong> Missing for <strong>29,800 products (35.1% of the catalog)</strong>. In the validation split, 5,936 products (34.95%) lack descriptions. Missingness is highly concentrated in book-related categories: <strong>Book Lots (2403) has 97.4% missing descriptions</strong>, New Books (2705) has 82.5%, and Magazines (2280) has 74.1%. In these categories, unimodal text models are forced to operate purely on brief titles.</li>
     <li><strong>Formatting Noise:</strong> Raw HTML entities (e.g., <code>&amp;amp;</code>, <code>&amp;eacute;</code>) occur in 41.3% of descriptions, while raw structural tags (<code>&lt;p&gt;</code>, <code>&lt;div&gt;</code>, <code>&lt;br&gt;</code>) appear in 18.4%.</li>
     <li><strong>Duplicate Titles:</strong> 4,187 products (4.9%) share an identical title string with at least one other catalog entry. In 160 clusters, identical titles map to different product categories (e.g., promotional merchandise vs. media).</li>
@@ -464,7 +464,7 @@ The dataset comprises <strong>84,916 labelled products</strong> across 27 produc
 <h2>2.3 Image Exploration: Dimensions and Border Padding</h2>
 <ul>
     <li><strong>Dimensions &amp; Format:</strong> All 84,916 images are 500 &times; 500 pixel RGB JPEGs.</li>
-    <li><strong>The White Border Problem:</strong> Over 75% of catalog images place small products centered within expansive white canvas backgrounds. Standard direct downsampling to 224 &times; 224 pixels shrinks the actual object into an unrecognizable cluster of 20–40 pixels, discarding discriminative logos and textures.</li>
+    <li><strong>The White Border Problem:</strong> Many catalog images show a small product in the middle of a large white background. Resizing the whole image to 224 &times; 224 pixels makes the product very small and loses logos and printed text.</li>
     <li><strong>Perceptual Duplicates:</strong> Exact SHA-256 and perceptual hash (pHash) analysis reveals duplicate images used across different product listings (e.g., generic placeholder images and multi-pack variants).</li>
 </ul>
 
@@ -532,7 +532,7 @@ To prevent cross-split contamination, an SHA-256 hash deduplication pass verifie
 A critical requirement of this project is absolute transparency regarding how the 16,984 validation products were handled:
 </p>
 <ol>
-    <li><strong>Unimodal Training:</strong> The unimodal classifiers (LinearSVC, CamemBERT, ConvNeXt-Tiny) were trained <em>strictly and exclusively</em> on the 67,932 training rows. None of them ever saw a single row or image from the 16,984 validation set during training.</li>
+    <li><strong>Unimodal Training:</strong> The text classifiers (LinearSVC, CamemBERT) were trained only on the 67,932 training rows, and ConvNeXt-Tiny on the 62,312 training images left after removing duplicate and conflicting images. None of them ever saw a single row or image from the 16,984 validation set during training.</li>
     <li><strong>Probability Extraction:</strong> The trained unimodal models generated out-of-sample probability distributions for each of the 16,984 validation products.</li>
     <li><strong>5-Fold Stratified CV on Validation:</strong> To train the meta-classifiers without data leakage, the 16,984 validation products were divided into <strong>5 stratified folds</strong> (<code>CV_FOLDS=5</code>, <code>random_state=42</code>):
         <ul>
@@ -557,8 +557,8 @@ A critical requirement of this project is absolute transparency regarding how th
 To overcome the white-border pathology identified in Section 2.3, we developed a deterministic <strong>smart white-border cropping algorithm</strong>:
 </p>
 <ul>
-    <li>The background luminance is estimated by sampling the four corner pixels. Pixels matching the canvas within an RGB tolerance of &plusmn;12 are treated as background.</li>
-    <li>If the non-background bounding box covers less than <strong>75%</strong> of the canvas, the algorithm extracts a square crop centered on the product bounding box at native resolution (minimum 224 pixels), padding minimally if necessary.</li>
+    <li>Each image is turned to greyscale. Pixels darker than a grey level of 245 count as product; lighter pixels count as white background.</li>
+    <li>If the non-background bounding box covers less than <strong>75%</strong> of the canvas, the algorithm extracts a square crop centered on the product bounding box at native resolution (at least 224 pixels), with 12 pixels of padding around the product.</li>
     <li>Products that naturally fill the frame are preserved without distortion.</li>
     <li>All cropped images are resized to 224 &times; 224 RGB tensors and normalized using ImageNet channel statistics.</li>
 </ul>
@@ -568,7 +568,7 @@ To overcome the white-border pathology identified in Section 2.3, we developed a
 
 <h2>4.1 Classical Text Models and Tuning</h2>
 <p>
-Using 3-fold cross-validation on the training set [notebook <code>03_text_baseline.ipynb</code>], we evaluated three classical linear classifiers on TF-IDF features:
+Using 3-fold cross-validation on the training set [notebook <code>03_2_text_optimisation.ipynb</code>], we evaluated three classical linear classifiers on TF-IDF features:
 </p>
 
 <table>
@@ -608,9 +608,6 @@ In notebook <code>03_2_text_optimisation.ipynb</code>, we systematically tuned t
     <li><strong>Platt Scaling Calibration:</strong> Because LinearSVC produces unbounded signed distances rather than probabilities, we wrapped it in <code>CalibratedClassifierCV(cv=3, method='sigmoid')</code>. On the 16,984 validation rows, calibrated LinearSVC achieved <strong>0.8430 Weighted F1</strong> (Macro F1 0.8326, 2,656 errors), providing reliable probability vectors for late fusion.</li>
 </ul>
 
-<div class="callout callout-info">
-    <strong>Investigation of Character N-Grams:</strong> We investigated whether character n-grams would benefit the TF-IDF representation. In our classical pipeline, word unigrams and bigrams with binary weighting proved optimal. Character n-grams substantially inflate vocabulary dimensions and memory overhead. Furthermore, subword tokenization in CamemBERT (via SentencePiece BPE) inherently solves character-level morphology and spelling errors with superior contextual sensitivity.
-</div>
 
 <h2>4.2 Transformer Fine-Tuning: CamemBERT</h2>
 <p>
@@ -648,8 +645,8 @@ Classifying e-commerce products from images alone is inherently challenging due 
             <td>ResNet18</td>
             <td>Frozen ImageNet backbone; linear classification head only.</td>
             <td class="num-col">0.4818</td>
-            <td class="num-col">0.4230</td>
-            <td class="num-col">8,802</td>
+            <td class="num-col">0.4231</td>
+            <td class="num-col">8,462</td>
         </tr>
         <tr>
             <td>03_3</td>
@@ -657,15 +654,15 @@ Classifying e-commerce products from images alone is inherently challenging due 
             <td>Full end-to-end fine-tuning across all convolutional layers.</td>
             <td class="num-col">0.6281</td>
             <td class="num-col">0.5943</td>
-            <td class="num-col">6,316</td>
+            <td class="num-col">6,315</td>
         </tr>
         <tr>
             <td>03_4</td>
             <td>ResNet18</td>
-            <td>Data augmentations (AutoAugment, ColorJitter) and weight decay.</td>
+            <td>Augmentation (random crops, flips, rotation, colour jitter, random erasing), label smoothing and weight decay.</td>
             <td class="num-col">0.6235</td>
             <td class="num-col">0.5876</td>
-            <td class="num-col">6,394</td>
+            <td class="num-col">6,377</td>
         </tr>
         <tr>
             <td>03_6</td>
@@ -673,15 +670,15 @@ Classifying e-commerce products from images alone is inherently challenging due 
             <td>Vision Transformer with self-attention on 16 &times; 16 patches.</td>
             <td class="num-col">0.6386</td>
             <td class="num-col">0.5982</td>
-            <td class="num-col">6,138</td>
+            <td class="num-col">6,108</td>
         </tr>
         <tr>
             <td>03_5</td>
             <td>ResNet50</td>
             <td>Deeper residual network; standard 224 &times; 224 cropping.</td>
-            <td class="num-col">0.6698</td>
-            <td class="num-col">0.6401</td>
-            <td class="num-col">5,609</td>
+            <td class="num-col">0.6707</td>
+            <td class="num-col">0.6415</td>
+            <td class="num-col">5,566</td>
         </tr>
         <tr>
             <td>03_5</td>
@@ -703,33 +700,33 @@ Classifying e-commerce products from images alone is inherently challenging due 
 </table>
 
 <div class="callout callout-success">
-    <strong>Quantifying the Impact of Smart White-Border Cropping Alone:</strong> Comparing the standard ConvNeXt-Tiny (03_5: 0.6739 Weighted F1) to the optimized ConvNeXt-Tiny (03_7: 0.6998 Weighted F1) demonstrates an absolute gain of <strong>+2.59 percentage points Weighted F1 (+0.0259)</strong> and <strong>+2.94 percentage points Macro F1 (+0.0294)</strong>. Eliminating dead white canvas pixels triples the effective resolution of the physical product, enabling convolutional filters to extract high-frequency brand markings and textures.
+    <strong>From the standard to the optimised ConvNeXt-Tiny:</strong> going from 03_5 (0.6739 Weighted F1) to 03_7 (0.6998) adds <strong>+2.59 points Weighted F1</strong> and <strong>+2.94 points Macro F1</strong>. This gain combines four changes: the smart white-border crop, layer-wise learning rates, the balanced sampler and flip TTA. The notebooks do not measure the crop on its own; flip TTA alone adds about 0.2 points (0.6980 &rarr; 0.6998).
 </div>
 
 <h2>5.2 Grad-CAM Visual Interpretability Analysis</h2>
 <p>
-To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented Gradient-weighted Class Activation Mapping (Grad-CAM) targeting the final convolutional stage (<code>stages.3.blocks.2</code>) [notebook <code>03_8_image_convnext_gradcam.ipynb</code>].
+To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented Gradient-weighted Class Activation Mapping (Grad-CAM) targeting the last ConvNeXt stage (<code>features[7]</code> in torchvision) [notebook <code>03_8_image_convnext_gradcam.ipynb</code>].
 </p>
 
 <figure class="report-figure">
     <img src="figures/fig7_gradcam_correct.png" alt="Grad-CAM on correct predictions">
-    <figcaption class="report-caption"><strong>Figure 3:</strong> Grad-CAM visual attention for correctly classified catalog items. The model concentrates activation energy on distinguishing visual elements (board layouts, figurines, book typography) rather than background padding.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 3:</strong> Grad-CAM for two correct predictions: a New Books cover (99.0% confidence) and a Textiles bed scene (96.9%). The heat sits on the cover title and on the pillow and bedding, not on the background.</figcaption>
 </figure>
 
 <ul>
-    <li><strong>Semantic Focal Points:</strong> Across correctly classified items (Figure 3), the network localizes distinctive structural signatures: book title typography and cover graphics in Used Books (10) and New Books (2705), game board artwork and pawn configurations in Board Games (1281), and distinctive metallic frames in Pool Accessories (2583).</li>
-    <li><strong>Smart Cropping Heatmap Shift (Figure 4):</strong> Without white-border cropping, the attention heatmap is dispersed over empty background pixels, reducing gradient magnitude on the product. With smart cropping, activation heatmaps contract directly around the physical boundaries of the product.</li>
-    <li><strong>Failure Mode Diagnosis (Figure 5):</strong> Misclassifications predominantly occur when products share generic outer packaging (e.g., collectible figurines in rectangular window boxes mistaken for board games) or when low-contrast white items blend into canvas padding.</li>
+    <li><strong>Correct predictions (Figure 3):</strong> for the New Books cover, the heat sits on the title band; for Textiles, on the pillow and the bedding.</li>
+    <li><strong>Effect of smart cropping (Figure 4):</strong> without the crop, the book is small, the heat spreads over the white background and the model predicts Stationery (73.6%). With the crop, the heat moves to the cover title and the model predicts the correct Used Books (97.2%).</li>
+    <li><strong>Errors (Figure 5):</strong> a used book is predicted as New Books (94.4%): the model looks at the cover title, but a cover cannot show whether a book is used. A crayon set (Toys) is predicted as Stationery (98.0%), because crayons fit both categories.</li>
 </ul>
 
 <figure class="report-figure">
     <img src="figures/fig9_gradcam_cropping.png" alt="Effect of smart cropping on Grad-CAM">
-    <figcaption class="report-caption"><strong>Figure 4:</strong> Receptive field shift: Smart white-border cropping concentrates convolutional gradients directly on product textures, eliminating background dispersion.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 4:</strong> The same validation image without and with smart cropping. Without the crop the heat spreads over the white background; with it, the heat moves to the cover title.</figcaption>
 </figure>
 
 <figure class="report-figure">
     <img src="figures/fig8_gradcam_errors.png" alt="Grad-CAM failure modes">
-    <figcaption class="report-caption"><strong>Figure 5:</strong> Grad-CAM failure modes: Identical cardboard packaging and generic plastic blister packs induce visual ambiguity between sibling categories.</figcaption>
+    <figcaption class="report-caption"><strong>Figure 5:</strong> Grad-CAM on two errors: a used book predicted as New Books, and crayons (Toys) predicted as Stationery.</figcaption>
 </figure>
 
 <!-- SECTION 6 -->
@@ -805,7 +802,7 @@ For every listing in the 16,984 validation set, our unimodal models yield three 
             <td>Weighted Soft Voting (CamemBERT + SVM + Image) (04)</td>
             <td><span class="badge-tag badge-fusion">Fusion</span></td>
             <td class="num-col">0.8920</td>
-            <td class="num-col">0.8785</td>
+            <td class="num-col">0.8797</td>
             <td class="num-col">+1.55</td>
             <td class="num-col">1,813</td>
         </tr>
@@ -861,29 +858,29 @@ A pivotal question for e-commerce cataloging is how multimodal fusion performs w
         <tr>
             <td>CamemBERT (Text)</td>
             <td class="num-col">0.8765</td>
-            <td class="num-col">0.9021</td>
-            <td class="num-col">0.8358</td>
-            <td class="num-col">&minus;0.0663</td>
+            <td class="num-col">0.8996</td>
+            <td class="num-col">0.8349</td>
+            <td class="num-col">&minus;0.0647</td>
         </tr>
         <tr>
             <td>Soft Voting Equal Weights</td>
             <td class="num-col">0.8941</td>
-            <td class="num-col">0.9058</td>
-            <td class="num-col">0.8746</td>
-            <td class="num-col">&minus;0.0312</td>
+            <td class="num-col">0.9050</td>
+            <td class="num-col">0.8743</td>
+            <td class="num-col">&minus;0.0307</td>
         </tr>
         <tr class="highlight-row">
             <td><strong>Random Forest Stacking</strong></td>
             <td class="num-col"><strong>0.8988</strong></td>
-            <td class="num-col"><strong>0.9152</strong></td>
-            <td class="num-col"><strong>0.8756</strong></td>
-            <td class="num-col"><strong>&minus;0.0396</strong></td>
+            <td class="num-col"><strong>0.9120</strong></td>
+            <td class="num-col"><strong>0.8739</strong></td>
+            <td class="num-col"><strong>&minus;0.0381</strong></td>
         </tr>
     </tbody>
 </table>
 
 <div class="callout callout-info">
-    <strong>Key Finding on Missing Descriptions:</strong> When descriptions are missing (35.0% of products), LinearSVC F1 plunges by <strong>9.72 points</strong> and CamemBERT drops by <strong>6.63 points</strong>. Meanwhile, the image model achieves <strong>0.7351 F1</strong> on these products (book covers and packaging are highly informative). Consequently, Random Forest fusion delivers a massive <strong>+3.98 F1 point gain over CamemBERT alone</strong> (0.8358 &rarr; 0.8756) and <strong>+9.60 F1 points over LinearSVC</strong>. The visual stream serves as a resilient safety net for title-only catalog listings.
+    <strong>Key Finding on Missing Descriptions:</strong> When descriptions are missing (35.0% of products), LinearSVC F1 plunges by <strong>9.72 points</strong> and CamemBERT drops by <strong>6.47 points</strong>. Meanwhile, the image model achieves <strong>0.7351 F1</strong> on these products (book covers and packaging are highly informative). Consequently, Random Forest fusion gains <strong>+3.90 F1 points over CamemBERT alone</strong> (0.8349 &rarr; 0.8739) and <strong>+9.43 F1 points over LinearSVC</strong>. The visual stream serves as a resilient safety net for title-only catalog listings.
 </div>
 
 <h2>6.3 Per-Category Synergies and Delta Distribution</h2>
@@ -891,16 +888,16 @@ A pivotal question for e-commerce cataloging is how multimodal fusion performs w
 Evaluating the Random Forest fusion against CamemBERT across all 27 categories reveals remarkable consistency with Figure 6:
 </p>
 <ul>
-    <li><strong>24 of 27 categories improve</strong> over CamemBERT alone.</li>
-    <li><strong>2 categories remain equal:</strong> PC Games (2905, gain 0.0) and RC Models (1300, gain +0.0).</li>
+    <li><strong>25 of 27 categories improve</strong> over CamemBERT alone.</li>
+    <li><strong>1 category stays equal:</strong> PC Games (2905).</li>
     <li><strong>Exactly 1 category exhibits a minor drop:</strong> Baby Socks (1301, &minus;0.3 F1 points / &minus;0.0033).</li>
-    <li><strong>Video Games (code 40):</strong> CamemBERT F1 is 0.7953, and Best Fusion reaches 0.8546, representing an exact gain of <strong>+5.9 F1 points (+0.0593)</strong>, matching Figure 6 perfectly.</li>
-    <li><strong>Largest Synergies:</strong> The most substantial gains occur in categories characterized by missing descriptions and visually distinct covers: Used Books (10, <strong>+9.9 points</strong>), Book Lots (2403, <strong>+6.8 points</strong>), Video Games (40, <strong>+5.9 points</strong>), Board Games (1281, <strong>+5.3 points</strong>), and Magazines (2280, <strong>+5.1 points</strong>).</li>
+    <li><strong>Games (code 40):</strong> CamemBERT F1 is 0.7953, and Best Fusion reaches 0.8546, representing an exact gain of <strong>+5.9 F1 points (+0.0593)</strong>, matching Figure 6 perfectly.</li>
+    <li><strong>Largest gains:</strong> New Books (2705, <strong>+10.8 points</strong>), Used Books (10, <strong>+9.9</strong>), Wargames (1180, <strong>+9.3</strong>), Games (40, <strong>+5.9</strong>) and Outdoor Toys (1302, <strong>+4.3</strong>). The image tells new books from used ones, and the SVM catches the rare exact words of Wargames.</li>
 </ul>
 
 <figure class="report-figure">
     <img src="figures/fig3_multimodal_synergy_delta.png" alt="F1 gain per category">
-    <figcaption class="report-caption"><strong>Figure 6:</strong> F1 score delta of the Random Forest fusion over CamemBERT alone, per category. 24 categories improve, 2 remain equal, and 1 declines slightly (&minus;0.3).</figcaption>
+    <figcaption class="report-caption"><strong>Figure 6:</strong> F1 score delta of the Random Forest fusion over CamemBERT alone, per category. 25 categories improve, 1 stays equal, and 1 declines slightly (&minus;0.3).</figcaption>
 </figure>
 
 <h2>6.4 Confusion Matrix and Error Patterns</h2>
@@ -923,14 +920,14 @@ Figure 7 displays the normalized out-of-fold confusion matrix of the Random Fore
         </tr>
     </thead>
     <tbody>
-        <tr><td>Book Lots (2403)</td><td>Used Books (10)</td><td class="num-col">65</td><td>Volume bundles vs. single vintage novels; identical cover artwork.</td></tr>
-        <tr><td>Board Games (1281)</td><td>Toys (1280)</td><td class="num-col">65</td><td>Cardboard packaging overlap; toy brands marketing licensed board games.</td></tr>
-        <tr><td>Toys (1280)</td><td>Board Games (1281)</td><td class="num-col">44</td><td>Reciprocal packaging confusion between toy kits and family games.</td></tr>
-        <tr><td>Magazines (2280)</td><td>Book Lots (2403)</td><td class="num-col">43</td><td>Multi-issue magazine bundles classified as book lots.</td></tr>
-        <tr><td>Furniture (1560)</td><td>Interior Decor (2060)</td><td class="num-col">39</td><td>Small shelving, bedside lamps, and decorative storage.</td></tr>
-        <tr><td>Book Lots (2403)</td><td>Magazines (2280)</td><td class="num-col">38</td><td>Serialized paperbacks sharing periodical format and binding.</td></tr>
-        <tr><td>New Books (2705)</td><td>Used Books (10)</td><td class="num-col">35</td><td>Identical title strings; listing fails to specify condition in text.</td></tr>
-        <tr><td>Toys (1280)</td><td>Figurines (1140)</td><td class="num-col">35</td><td>Franchise action figures categorized ambiguously as toys vs. collectibles.</td></tr>
+        <tr><td>Board Games (1281)</td><td>Toys (1280)</td><td class="num-col">61</td><td>Cardboard packaging overlap; toy brands marketing licensed board games.</td></tr>
+        <tr><td>Toys (1280)</td><td>Board Games (1281)</td><td class="num-col">56</td><td>Reciprocal packaging confusion between toy kits and family games.</td></tr>
+        <tr><td>Book Lots (2403)</td><td>Used Books (10)</td><td class="num-col">52</td><td>Volume bundles vs. single vintage novels; identical cover artwork.</td></tr>
+        <tr><td>Book Lots (2403)</td><td>Magazines (2280)</td><td class="num-col">41</td><td>Serialized paperbacks sharing periodical format and binding.</td></tr>
+        <tr><td>Furniture (1560)</td><td>Decor (2060)</td><td class="num-col">41</td><td>Small shelving, bedside lamps, and decorative storage.</td></tr>
+        <tr><td>Toys (1280)</td><td>Figurines (1140)</td><td class="num-col">39</td><td>Franchise action figures categorized ambiguously as toys vs. collectibles.</td></tr>
+        <tr><td>New Books (2705)</td><td>Used Books (10)</td><td class="num-col">38</td><td>Identical title strings; listing fails to specify condition in text.</td></tr>
+        <tr><td>Magazines (2280)</td><td>Book Lots (2403)</td><td class="num-col">38</td><td>Multi-issue magazine bundles classified as book lots.</td></tr>
     </tbody>
 </table>
 
@@ -974,9 +971,9 @@ Inspecting LinearSVC feature weights [notebook <code>05_interpretability.ipynb</
 Analyzing Gini feature importances within the Random Forest stacking meta-model (Figure 9) confirms how multimodal responsibilities are allocated:
 </p>
 <ul>
-    <li><strong>CamemBERT:</strong> Accounts for <strong>66%</strong> of overall meta-tree splits, acting as the primary semantic classifier.</li>
+    <li><strong>CamemBERT:</strong> Accounts for <strong>66%</strong> of the feature importance, acting as the primary classifier.</li>
     <li><strong>LinearSVC:</strong> Accounts for <strong>23%</strong> of feature importance, capturing exact rare n-grams and brand identifiers that subword embeddings occasionally dilute.</li>
-    <li><strong>ConvNeXt-Tiny:</strong> Accounts for <strong>11%</strong> of overall importance across all categories, but surges to over <strong>35% importance</strong> specifically within book, magazine, and gaming sub-trees.</li>
+    <li><strong>ConvNeXt-Tiny:</strong> Accounts for <strong>11%</strong> of the importance. Removing it still costs 1.2 points, almost all on New Books (+11.4) and Used Books (+10.1) (Figure 10).</li>
 </ul>
 
 <figure class="report-figure">
@@ -1003,8 +1000,7 @@ Deploying multimodal deep learning models into production requires balancing acc
             <th>Deployment Tier</th>
             <th>Target Architecture</th>
             <th class="num-col">Weighted F1</th>
-            <th class="num-col">Throughput (items/sec)</th>
-            <th>Hardware Footprint</th>
+            <th>Compute</th>
             <th>Recommended Use Case</th>
         </tr>
     </thead>
@@ -1013,24 +1009,21 @@ Deploying multimodal deep learning models into production requires balancing acc
             <td><strong>Tier 1: Ultra-Fast</strong></td>
             <td>Calibrated LinearSVC (Text only)</td>
             <td class="num-col">0.8430</td>
-            <td class="num-col">&gt; 1,200</td>
-            <td>1 &times; Standard CPU</td>
+            <td>CPU only</td>
             <td>Real-time seller form autocomplete; bulk backfill of legacy text catalogs.</td>
         </tr>
         <tr>
             <td><strong>Tier 2: Intermediate</strong></td>
             <td>Equal Soft Voting (all 3)</td>
             <td class="num-col">0.8941</td>
-            <td class="num-col">~180</td>
-            <td>1 &times; Entry GPU (T4 / L4)</td>
+            <td>GPU for CamemBERT and ConvNeXt</td>
             <td>Zero meta-model maintenance; high accuracy without training a secondary stacking layer.</td>
         </tr>
         <tr class="highlight-row">
             <td><strong>Tier 3: Maximum Accuracy</strong></td>
             <td><strong>Random Forest Stacking (all 3)</strong></td>
             <td class="num-col"><strong>0.8988</strong></td>
-            <td class="num-col">~175</td>
-            <td>1 &times; Entry GPU (T4 / L4)</td>
+            <td>GPU for CamemBERT and ConvNeXt, plus the Random Forest</td>
             <td>Production marketplace pipeline; optimal resolution of ambiguous listings.</td>
         </tr>
     </tbody>
@@ -1039,8 +1032,8 @@ Deploying multimodal deep learning models into production requires balancing acc
 <div class="callout callout-success">
     <strong>Recommended Production Architecture — Cascaded Inference:</strong> Rather than evaluating heavy neural pipelines on all listings, production systems should adopt a two-stage cascade:
     <ol>
-        <li>Pass new listings through the calibrated LinearSVC. If the top class probability exceeds <strong>0.92</strong> (~60% of traffic), accept the prediction immediately with sub-millisecond latency on CPU.</li>
-        <li>For remaining uncertain or title-only listings, invoke the CamemBERT and ConvNeXt-Tiny pipelines and route probabilities through the Random Forest. This captures 99.5% of the stacking gain while reducing GPU compute expenditures by over 60%.</li>
+        <li>Pass new listings through the calibrated LinearSVC. If the top class probability exceeds <strong>0.92</strong> (21% of the validation products), accept its prediction on CPU.</li>
+        <li>For remaining uncertain or title-only listings, invoke the CamemBERT and ConvNeXt-Tiny pipelines and route probabilities through the Random Forest. On the validation products this keeps the full Random Forest score (0.8987 against 0.8988) and runs the GPU models on 79% of products, saving about 21% of GPU work.</li>
     </ol>
 </div>
 
