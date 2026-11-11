@@ -69,7 +69,7 @@ def benchmark_figure(fusion):
 
     rows = [
         ("Zero-Rule Majority Baseline", majority_f1(), "#94a3b8"),
-        ("ResNet18, frozen (03)", f1_res_base, IMAGE_COLOR),
+        ("ResNet18, frozen (03_1)", f1_res_base, IMAGE_COLOR),
         ("ResNet18, full fine-tuning (03_3)", image_f1("03_3_resnet18_full"), IMAGE_COLOR),
         ("ResNet18, augmentation (03_4)", image_f1("03_4_resnet18_regularized"), IMAGE_COLOR),
         ("ViT-B/16 (03_6)", image_f1("03_6_vit_b16"), IMAGE_COLOR),
