@@ -1020,5 +1020,48 @@ Deploying multimodal deep learning models into production requires balancing acc
 This project demonstrates that while text is the dominant modality for e-commerce categorization, computer vision provides a vital, non-redundant signal that compensates for real-world catalog imperfections. By pairing rigorous data hygiene (locked stratified split, deduplication, smart white-border cropping) with modern deep learning backbones (CamemBERT, ConvNeXt-Tiny) and late fusion by equal soft voting, we advanced classification performance from a naive baseline of <strong>0.0258 F1</strong> to a robust <strong>0.8941 Weighted F1</strong> (0.8826 Macro F1). The full pipeline is open, reproducible, and readily adaptable for production deployment.
 </p>
 
+
+<h1>9. Difficulties Encountered</h1>
+<ul>
+    <li><strong>Main scientific obstacle:</strong> the four book categories (Used Books, New Books, Book Lots, Magazines) look alike in both text and image. A title rarely says whether a book is new or used, and 7 of the SVM's 10 most confused category pairs are book pairs. The image helps, but a cover cannot always show the condition either.</li>
+    <li><strong>Data:</strong> 35.1% of products have no description (97.4% of Book Lots), many images show a small product on a large white background, and 5,620 training images were removed because they were duplicates or had conflicting labels. Rakuten gives only numeric category codes, so the category names are our own interpretation.</li>
+    <li><strong>Time:</strong> one CamemBERT training run takes about 2 hours on a laptop GPU (Apple M1 Pro), so its settings could not be tuned with cross-validation. The image models had to be trained on Google Colab GPUs.</li>
+    <li><strong>Computing:</strong> On the laptop GPU, CamemBERT's memory use kept growing and macOS started swapping, until the memory was cleared after each prediction pass. The trained models are too large for git (the ConvNeXt checkpoint is 111 MB), so they are shared separately.</li>
+    <li><strong>Relevance of the approach:</strong> a Random Forest trained on the three models' predictions scored higher, but it learns from the same validation products it is scored on, so its score is not comparable with the single models. We therefore kept equal soft voting as the final model.</li>
+</ul>
+
+<h1>10. Continuation of the Project</h1>
+<ul>
+    <li><strong>Text read from the images (OCR):</strong> we ran Tesseract OCR on the product images. 79% of images contain some text, but only 17% give three or more real words, and readable text mostly repeats the title. Adding the OCR text to the product text lowered the SVM (0.8436 &rarr; 0.8366) and CamemBERT (0.8765 &rarr; 0.8491). As a fourth model in equal soft voting it gave no gain (0.8938 against 0.8941). A stronger OCR engine, used only for books, could still help.</li>
+    <li><strong>A learned fusion with a clean train / validation / test split:</strong> a meta-model such as a Random Forest needs predictions on products the base models never saw. The clean way is to train each base model five times on the training split, predict the held-out fifth each time, train the meta-model on these predictions, and keep the whole validation split as an untouched test set. A quick check on our data (meta-model trained on half of the validation products, scored on the other half, six random splits) gave 0.896 to 0.900 against 0.892 to 0.897 for equal soft voting, so a learned fusion may add about half a point.</li>
+    <li><strong>Official test set:</strong> predicting the 13,812 official test products and submitting them to the challenge would give a score that is directly comparable with the benchmark.</li>
+    <li><strong>Longer text for CamemBERT:</strong> texts are cut at 128 tokens, so the end of long descriptions is lost. A longer input could help on detailed listings.</li>
+</ul>
+
+<h1>11. Bibliography</h1>
+<ul>
+    <li>Martin, L. et al. (2020). <em>CamemBERT: a Tasty French Language Model.</em> ACL 2020.</li>
+    <li>Wolf, T. et al. (2020). <em>Transformers: State-of-the-Art Natural Language Processing.</em> EMNLP 2020, System Demonstrations.</li>
+    <li>Loshchilov, I. &amp; Hutter, F. (2019). <em>Decoupled Weight Decay Regularization.</em> ICLR 2019.</li>
+    <li>He, K. et al. (2016). <em>Deep Residual Learning for Image Recognition.</em> CVPR 2016.</li>
+    <li>Dosovitskiy, A. et al. (2021). <em>An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale.</em> ICLR 2021.</li>
+    <li>Liu, Z. et al. (2022). <em>A ConvNet for the 2020s.</em> CVPR 2022.</li>
+    <li>Selvaraju, R. R. et al. (2017). <em>Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization.</em> ICCV 2017.</li>
+    <li>Pedregosa, F. et al. (2011). <em>Scikit-learn: Machine Learning in Python.</em> Journal of Machine Learning Research 12.</li>
+    <li>Platt, J. (1999). <em>Probabilistic Outputs for Support Vector Machines and Comparisons to Regularized Likelihood Methods.</em> Advances in Large Margin Classifiers, MIT Press.</li>
+    <li>Wolpert, D. H. (1992). <em>Stacked Generalization.</em> Neural Networks 5(2).</li>
+    <li>Smith, R. (2007). <em>An Overview of the Tesseract OCR Engine.</em> ICDAR 2007.</li>
+    <li>Rakuten Institute of Technology. <em>Rakuten France Multimodal Product Data Classification.</em> ENS Challenge Data.</li>
+</ul>
+
+<h1>Appendix A. Gantt Chart</h1>
+<p>
+The project phases follow the mentor's schedule; the workstream bars show when each part of the work was active, based on the git history.
+</p>
+<figure class="report-figure">
+    <img src="figures/fig11_gantt.png" alt="Project Gantt chart">
+    <figcaption class="report-caption"><strong>Figure 11:</strong> Project phases and workstreams, September to November 2026.</figcaption>
+</figure>
+
 </body>
 </html>

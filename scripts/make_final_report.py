@@ -227,6 +227,39 @@ def notebook_figure(notebook_relpath, marker, name):
     return None
 
 
+def gantt_figure():
+    """Project phases from the mentor's schedule, and when each workstream was active (git history)."""
+    from datetime import date
+
+    import matplotlib.dates as mdates
+
+    rows = [
+        ("Step 1: data audit", date(2026, 9, 24), date(2026, 10, 1), MUTED),
+        ("Step 2: preprocessing", date(2026, 10, 1), date(2026, 10, 8), MUTED),
+        ("Step 3.1: baselines", date(2026, 10, 8), date(2026, 10, 15), MUTED),
+        ("Step 3.2: optimisation", date(2026, 10, 15), date(2026, 10, 29), MUTED),
+        ("Step 3.3: advanced models", date(2026, 10, 29), date(2026, 11, 5), MUTED),
+        ("Step 4: final report", date(2026, 11, 5), date(2026, 11, 13), MUTED),
+        ("Step 5: app and defense", date(2026, 11, 13), date(2026, 11, 24), MUTED),
+        ("Text models", date(2026, 10, 10), date(2026, 11, 11), TEXT_COLOR),
+        ("Image models", date(2026, 10, 7), date(2026, 11, 9), IMAGE_COLOR),
+        ("Fusion", date(2026, 10, 25), date(2026, 11, 11), FUSION_COLOR),
+    ]
+    fig, ax = plt.subplots(figsize=(9, 4.2))
+    for i, (label, start, end, color) in enumerate(rows):
+        ax.barh(i, mdates.date2num(end) - mdates.date2num(start), left=mdates.date2num(start),
+                color=color, height=0.55)
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([r[0] for r in rows], fontsize=8.5)
+    ax.invert_yaxis()
+    ax.axhline(6.5, color=LINE, linewidth=1)
+    ax.xaxis_date()
+    ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
+    style(ax, "Project schedule: phases (grey) and workstreams", "Week starting")
+    return save(fig, "fig11_gantt")
+
+
 def keep_headings_with_content(html):
     """Wrap each heading, its short intro line and the first table or figure in one unbreakable block.
 
@@ -247,7 +280,8 @@ def keep_headings_with_content(html):
         if nxt is not None and nxt.name == "p":
             group.append(nxt)
             after = nxt.find_next_sibling()
-            if after is not None and after.name in blocks and nxt.get_text(strip=True).endswith(":"):
+            intro = nxt.get_text(strip=True)
+            if after is not None and after.name in blocks and (intro.endswith(":") or len(intro) < 300):
                 group.append(after)
         elif nxt is not None and nxt.name in blocks:
             group.append(nxt)
@@ -265,6 +299,7 @@ def main():
     benchmark_figure(fusion)
     class_figure()
     fusion_figures()
+    gantt_figure()
 
     # Interpretability figures from notebook 05
     interpretability = "notebooks/05_interpretability.ipynb"
