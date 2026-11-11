@@ -82,6 +82,8 @@ def benchmark_figure(fusion):
         ("TF-IDF + SVM (03_2)", f1["SVM only (TF-IDF)"], TEXT_COLOR),
         ("CamemBERT (03_3)", f1["CamemBERT only"], TEXT_COLOR),
         ("Weighted soft voting (SVM + image) (04)", f1["Weighted soft voting (SVM + image)"], FUSION_COLOR),
+        ("Weighted soft voting (CamemBERT + image) (04)", f1["Weighted soft voting (CamemBERT + image)"], FUSION_COLOR),
+        ("Weighted soft voting (all 3) (04)", f1["Weighted soft voting (CamemBERT + SVM + image)"], FUSION_COLOR),
         ("Soft voting, equal weights (all 3) (04)", f1["Soft voting, equal weights (CamemBERT + SVM + image)"], FUSION_COLOR),
     ]
     labels, values, colors = zip(*rows[::-1])
