@@ -175,6 +175,8 @@ code {
 
 .report-figure img {
     max-width: 95%;
+    max-height: 105mm;
+    width: auto;
     height: auto;
     border: 1px solid #e5e7eb;
     border-radius: 4px;
@@ -389,14 +391,14 @@ To establish an empirical floor, the <strong>Zero-Rule Majority Class Baseline</
 </figure>
 
 <!-- SECTION 2 -->
-<h1 class="section-break">2. Exploratory Data Analysis &amp; Data Contract</h1>
+<h1>2. Exploratory Data Analysis &amp; Data Contract</h1>
 
 <h2>2.1 Class Distribution and Imbalance</h2>
 <p>
 The dataset comprises <strong>84,916 labelled products</strong> across 27 product categories. The distribution exhibits substantial class imbalance:
 </p>
 <ul>
-    <li>The largest category is <strong>Pool &amp; Garden (code 2583)</strong> with <strong>10,209 products</strong> (12.02% of the catalog).</li>
+    <li>The largest category is <strong>Pool (code 2583)</strong> with <strong>10,209 products</strong> (12.02% of the catalog).</li>
     <li>The smallest category is <strong>Wargames (code 1180)</strong> with <strong>764 products</strong> (0.90% of the catalog).</li>
     <li>The imbalance ratio between the largest and smallest category is <strong>13.36 to 1</strong> (~13.4:1). Seven categories contain fewer than 1,000 products.</li>
     <li>Due to this skew, overall accuracy is an inadequate metric. We evaluate models using <strong>Weighted F1</strong> (the official challenge metric) and report <strong>Macro F1</strong> to monitor performance on minority classes.</li>
@@ -411,7 +413,7 @@ The dataset comprises <strong>84,916 labelled products</strong> across 27 produc
     <strong>Disclaimer on Category Nomenclature:</strong> The challenge dataset identifies classes solely by numeric codes (<code>prdtypecode</code>). Category names throughout this report (e.g., <em>Used Books</em>, <em>Wargames</em>, <em>Pool</em>) represent our team's interpretation based on systematic catalog exploration and domain analysis; they are not official Rakuten labels.
 </div>
 
-<table>
+<table style="page-break-inside: auto;">
     <thead>
         <tr>
             <th>Code</th>
@@ -517,7 +519,7 @@ To ensure absolute architectural reproducibility, the table below specifies the 
 </table>
 
 <!-- SECTION 3 -->
-<h1 class="section-break">3. Preprocessing and Validation Protocol</h1>
+<h1>3. Preprocessing and Validation Protocol</h1>
 
 <h2>3.1 Locked Stratified Split</h2>
 <div class="callout callout-warning">
@@ -564,7 +566,7 @@ To overcome the white-border pathology identified in Section 2.3, we developed a
 </ul>
 
 <!-- SECTION 4 -->
-<h1 class="section-break">4. Text Classification Progression</h1>
+<h1>4. Text Classification Progression</h1>
 
 <h2>4.1 Classical Text Models and Tuning</h2>
 <p>
@@ -621,7 +623,7 @@ To capture semantic context and French syntactic nuance, we fine-tuned <strong>C
 </ul>
 
 <!-- SECTION 5 -->
-<h1 class="section-break">5. Computer Vision Progression &amp; Grad-CAM Analysis</h1>
+<h1>5. Computer Vision Progression &amp; Grad-CAM Analysis</h1>
 
 <h2>5.1 Deep Learning Progression Across Backbones</h2>
 <p>
@@ -709,7 +711,7 @@ To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented 
 </p>
 
 <figure class="report-figure">
-    <img src="figures/fig7_gradcam_correct.png" alt="Grad-CAM on correct predictions">
+    <img src="figures/fig7_gradcam_correct.png" alt="Grad-CAM on correct predictions" style="max-height: 82mm;">
     <figcaption class="report-caption"><strong>Figure 3:</strong> Grad-CAM for two correct predictions: a New Books cover (99.0% confidence) and a Textiles bed scene (96.9%). The heat sits on the cover title and on the pillow and bedding, not on the background.</figcaption>
 </figure>
 
@@ -720,17 +722,17 @@ To evaluate what the optimized ConvNeXt-Tiny network attends to, we implemented 
 </ul>
 
 <figure class="report-figure">
-    <img src="figures/fig9_gradcam_cropping.png" alt="Effect of smart cropping on Grad-CAM">
+    <img src="figures/fig9_gradcam_cropping.png" alt="Effect of smart cropping on Grad-CAM" style="max-height: 82mm;">
     <figcaption class="report-caption"><strong>Figure 4:</strong> The same validation image without and with smart cropping. Without the crop the heat spreads over the white background; with it, the heat moves to the cover title.</figcaption>
 </figure>
 
 <figure class="report-figure">
-    <img src="figures/fig8_gradcam_errors.png" alt="Grad-CAM failure modes">
+    <img src="figures/fig8_gradcam_errors.png" alt="Grad-CAM failure modes" style="max-height: 82mm;">
     <figcaption class="report-caption"><strong>Figure 5:</strong> Grad-CAM on two errors: a used book predicted as New Books, and crayons (Toys) predicted as Stationery.</figcaption>
 </figure>
 
 <!-- SECTION 6 -->
-<h1 class="section-break">6. Multimodal Fusion &amp; Empirical Results</h1>
+<h1>6. Multimodal Fusion &amp; Empirical Results</h1>
 
 <h2>6.1 Fusion Formulations and Out-of-Fold Evaluation</h2>
 <p>
@@ -936,7 +938,7 @@ The confusion matrix confirms that remaining misclassifications are almost exclu
 </p>
 
 <!-- SECTION 7 -->
-<h1 class="section-break">7. Feature Attribution &amp; Model Interpretability</h1>
+<h1>7. Feature Attribution &amp; Model Interpretability</h1>
 
 <h2>7.1 Text Feature Attribution: Distinctive vs. Shared Vocabulary</h2>
 <p>
@@ -977,17 +979,17 @@ Analyzing Gini feature importances within the Random Forest stacking meta-model 
 </ul>
 
 <figure class="report-figure">
-    <img src="figures/fig5_fusion_importance.png" alt="Random Forest feature importance">
+    <img src="figures/fig5_fusion_importance.png" alt="Random Forest feature importance" style="max-height: 55mm;">
     <figcaption class="report-caption"><strong>Figure 9:</strong> Relative share of Random Forest feature importance contributed by each model's probability outputs.</figcaption>
 </figure>
 
 <figure class="report-figure">
-    <img src="figures/fig6_image_gain.png" alt="Image contribution per category" style="max-width: 75%;">
+    <img src="figures/fig6_image_gain.png" alt="Image contribution per category" style="max-width: 60%; max-height: 82mm;">
     <figcaption class="report-caption"><strong>Figure 10:</strong> Category-level F1 delta of the Random Forest with the image stream versus without the image stream (5-fold cross-validation).</figcaption>
 </figure>
 
 <!-- SECTION 8 -->
-<h1 class="section-break">8. Production Deployment &amp; Recommendations</h1>
+<h1>8. Production Deployment &amp; Recommendations</h1>
 
 <h2>8.1 Production Architecture &amp; Engineering Trade-offs</h2>
 <p>
