@@ -1,0 +1,287 @@
+<html><head><meta charset='utf-8'><style>
+@page landscape { size: A4 landscape; margin: 10mm; }
+.landscape { page: landscape; }
+@page { size: A4; margin: 14mm 14mm 14mm 14mm;
+        @bottom-right { content: counter(page); font: 8pt Helvetica, Arial, sans-serif; color: #9ca3af; } }
+body { font-family: Helvetica, Arial, sans-serif; color: #1f2933; font-size: 9.6pt; line-height: 1.42; }
+.page { page-break-after: always; }
+.page:last-child { page-break-after: auto; }
+.step { font-size: 8pt; letter-spacing: 0.08em; color: #d0573a; font-weight: bold; margin: 0 0 2mm 0; }
+h1 { font-size: 20pt; margin: 0 0 1mm 0; }
+h2 { font-size: 16pt; margin: 0 0 3mm 0; }
+h3 { font-size: 9pt; letter-spacing: 0.06em; color: #6b7280; margin: 4mm 0 1.5mm 0; text-transform: uppercase; }
+.main { font-size: 11.5pt; font-weight: bold; color: #2b5c8f; border-left: 3px solid #2b5c8f;
+        padding: 1mm 0 1mm 3mm; margin: 0 0 3mm 0; }
+.cols { display: table; width: 100%; table-layout: fixed; border-spacing: 0; }
+.col { display: table-cell; vertical-align: top; padding-right: 5mm; }
+.col:last-child { padding-right: 0; }
+.wide { margin: 2mm 0; }
+ul { margin: 0; padding-left: 4.5mm; }
+li { margin-bottom: 1mm; }
+img { width: 100%; }
+.concept { background: #f3f4f6; border-radius: 2mm; padding: 3mm 4mm; margin: 2mm 0; }
+.concept b { color: #1f2933; }
+.qa { border-top: 1px solid #d1d5db; padding-top: 2mm; margin-top: 2mm; }
+.q { font-style: italic; margin: 1.5mm 0 0.5mm 0; }
+.a { color: #4b5563; margin: 0 0 1.5mm 0; }
+.flow { display: flex; align-items: center; gap: 2mm; font-size: 8.5pt; margin: 2mm 0; }
+.box { border: 1px solid #9ca3af; border-radius: 1.5mm; padding: 1.5mm 2mm; text-align: center; background: white; }
+.arrow { color: #9ca3af; }
+.note { color: #6b7280; font-size: 8.5pt; }
+table { border-collapse: collapse; font-size: 8.5pt; width: 100%; }
+td, th { border-bottom: 1px solid #e5e7eb; padding: 1mm 2mm; text-align: left; }
+th { color: #6b7280; font-weight: bold; }
+.fold { display: inline-block; width: 13mm; height: 4mm; margin: 0.4mm; border-radius: 0.8mm; }
+.tr { background: #bfd3e6; } .te { background: #e07b39; }
+</style></head><body>
+<div class="page">
+  <p class="step">PROJECT STORY</p>
+  <h1>Rakuten product classification</h1>
+  <p class="note">Classify 84916 products into 27 categories from their title, description and image.
+  All scores are weighted F1 on the same 16984 validation products.</p>
+  <div class="main">Best model: a Random Forest that combines CamemBERT, a TF-IDF SVM and an image model,
+  with 0.8988 weighted F1. Text carries most of the signal; images help on books.</div>
+  <h3>The final pipeline</h3>
+  <div class="flow"><div class="box">Title + description</div><span class="arrow">&gt;</span><div class="box">TF-IDF + SVM<br>27 probabilities</div></div>
+  <div class="flow"><div class="box">Title + description</div><span class="arrow">&gt;</span><div class="box">CamemBERT<br>27 probabilities</div></div>
+  <div class="flow"><div class="box">Product image</div><span class="arrow">&gt;</span><div class="box">ConvNeXt-tiny<br>27 probabilities</div></div>
+  <div class="flow"><div class="box">81 probabilities</div><span class="arrow">&gt;</span><div class="box">Random Forest</div><span class="arrow">&gt;</span><div class="box">Category (F1 0.8988)</div></div>
+  <h3>How the score improved</h3>
+  <img src="figures/progress.png" style="width:100%;">
+  <h3>Contents</h3>
+  <table>
+    <tr><td>1. Data audit</td><td>2. Preprocessing and shared split</td><td>3. Baselines</td></tr>
+    <tr><td>4. Text optimisation</td><td>5. CamemBERT</td><td>6. Image models</td></tr>
+    <tr><td>7. Fusion</td><td>8. Interpretability</td><td>9. Conclusions</td></tr>
+  </table>
+</div>
+<div class="page landscape">
+  <img src="../figures/project_timeline_lanes.png" style="width:100%;max-height:185mm;object-fit:contain">
+</div>
+<div class="page">
+  <p class="step">STEP 1 &nbsp; 1 OCT</p>
+  <h2>Data audit</h2>
+  <div class="main">The text is rich but messy, and the categories are unbalanced. We score with weighted F1
+  and also report macro F1.</div>
+  <div class="cols">
+    <div class="col">
+      <h3>What we found</h3>
+      <ul>
+        <li>84916 products, 27 categories, each with a title, an optional description and one image.</li>
+        <li>35% of products have no description. 18% of descriptions contain HTML.</li>
+        <li>The largest category (2583, pool) has 12% of products, the smallest (1180) 0.9%: 13 times less.</li>
+        <li>Category codes have no names. We named them by reading product titles.</li>
+      </ul>
+      <div class="concept"><b>Concept: weighted vs macro F1.</b> F1 combines precision (how many predicted
+      products are right) and recall (how many true products are found). <b>Weighted F1</b> averages the 27
+      category scores weighted by their size: it is the challenge metric. <b>Macro F1</b> gives every category
+      the same weight, so it shows if small categories are ignored.</div>
+    </div>
+    <div class="col"><img src="figures/classes.png" style="width:100%;"></div>
+  </div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Why not accuracy?</p><p class="a">With unbalanced categories, a model can ignore small ones and still look good. F1 per category, averaged, makes this visible.</p><p class="q">Is the imbalance a problem for training?</p><p class="a">Not much here: the smallest category still has 764 products. We check it with macro F1 and per-category F1 instead of re-sampling.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 2 &nbsp; 8 OCT</p>
+  <h2>Preprocessing and a shared split</h2>
+  <div class="main">Every model is scored on the same 16984 validation products. Without this, text, image and
+  fusion scores could not be compared or combined.</div>
+  <div class="cols">
+    <div class="col">
+      <h3>Text</h3>
+      <ul><li>HTML removed, text lowercased.</li><li>Title and description joined into one text.</li></ul>
+      <h3>Images</h3>
+      <ul><li>Duplicate images found by comparing a hash (fingerprint) of each file.</li>
+          <li>5620 duplicate or conflicting images removed from <b>train only</b>.</li></ul>
+      <h3>Split</h3>
+      <ul><li>One stratified 80/20 split: 67932 train, 16984 validation, saved to a file.</li>
+          <li>Stratified means each category has the same share in both parts.</li></ul>
+    </div>
+    <div class="col">
+      <div class="concept"><b>Concept: why validation must stay untouched.</b> The validation set plays the role
+      of new, unseen products. If we clean it, remove rows from it, or tune settings on it, its score becomes too
+      optimistic. So all cleaning that removes products is done on train only.</div>
+      <div class="flow"><div class="box">84916 products</div><span class="arrow">&gt;</span><div class="box">Train 67932<br>(cleaned)</div><span class="arrow">&gt;</span><div class="box">Validation 16984<br>(kept complete)</div></div>
+      <p class="note">The mentor found that an early version of the image cleaning also removed 551 validation
+      products. This was fixed: the image model now uses the same 16984 products as text.</p>
+    </div>
+  </div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Why keep duplicate images in validation?</p><p class="a">At test time every product needs a prediction, duplicate or not. Validation must look like the real test.</p><p class="q">Did the text cleaning help?</p><p class="a">No: 0.8276 on raw text against 0.8274 on clean text. We measured it instead of assuming it. TF-IDF already gives little weight to rare HTML tags.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 3.1 &nbsp; 15 OCT</p>
+  <h2>Baselines</h2>
+  <div class="main">Text is far stronger than images. A simple TF-IDF + SVM already reaches 0.83, the image model
+  0.48.</div>
+  <div class="cols">
+    <div class="col">
+      <div class="concept"><b>Concept: TF-IDF.</b> Each product becomes a long list of numbers, one per word or
+      word pair. A word gets a high value if it appears in this product but is rare overall (<i>piscine</i>),
+      and a low value if it appears everywhere (<i>pour</i>).</div>
+      <div class="concept"><b>Concept: linear SVM.</b> For each category, the model learns one weight per word.
+      A product's score for a category is the sum of its word values times the weights. The highest score wins.</div>
+    </div>
+    <div class="col">
+      <img src="figures/baselines.png" style="width:100%;">
+      <p class="note">Two ideas did not clearly help: cleaning the text (0.8276 raw, 0.8274 clean) and binary
+      TF-IDF with 50000 features (+0.33 on average over 5 splits, while the score moves 0.71 between splits).</p>
+    </div>
+  </div>
+  <div class="wide"><img src="figures/errors.png" style="width:100%;max-height:62mm;object-fit:contain;"></div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Is 0.83 better than the official benchmark (0.8113)?</p><p class="a">Not directly comparable: the benchmark is a CNN on titles only, scored on Rakuten's hidden test set. Our reference is our own baseline on our validation.</p><p class="q">Where does the SVM fail?</p><p class="a">36% of errors have a margin under 0.20: the model hesitated between two categories. 7 of the 10 most confused pairs are book categories.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 3.2 &nbsp; 29 OCT</p>
+  <h2>Optimisation of the text model</h2>
+  <div class="main">Using all words instead of 50000 and tuning with cross-validation on train: 0.8313 to 0.8436.</div>
+  <div class="cols">
+    <div class="col">
+      <div class="concept"><b>Concept: 3-fold cross-validation.</b> Train is cut into 3 parts. The model trains
+      on 2 and is tested on the third, 3 times. The average is used to choose settings, so validation is never
+      used for choices.<br><br><div><span class="fold te"></span><span class="fold tr"></span><span class="fold tr"></span> <span class='note'>round 1</span></div><div><span class="fold tr"></span><span class="fold te"></span><span class="fold tr"></span> <span class='note'>round 2</span></div><div><span class="fold tr"></span><span class="fold tr"></span><span class="fold te"></span> <span class='note'>round 3</span></div><span class="note">blue: train, orange: test</span></div>
+      <div class="concept"><b>Concept: C in the SVM.</b> C sets how strictly the SVM fits the training data.
+      Small C gives a simpler model (strong regularisation), large C fits every training product, including noise.</div>
+    </div>
+    <div class="col">
+      <img src="figures/features.png" style="width:100%;">
+      <p class="note">The 50000 limit kept only the most frequent words and dropped 89% of them, including rare
+      but useful ones such as brand or model names.</p>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="col"><img src="figures/grid.png" style="width:100%;"></div>
+    <div class="col"><img src="figures/models.png" style="width:100%;"></div>
+  </div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Was validation used to choose settings?</p><p class="a">No. Feature limit, binary and C were chosen with 3-fold CV on train. Validation was scored once at the end.</p><p class="q">Why keep binary TF-IDF now?</p><p class="a">With all features its gain (0.50 points) is larger than the CV spread (0.30). We set this rule before looking at the result.</p><p class="q">Why LinearSVC and not Logistic Regression?</p><p class="a">2 points better in CV, and still trains in seconds.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 3.3 &nbsp; 5 NOV</p>
+  <h2>Deep learning for text: CamemBERT</h2>
+  <div class="main">CamemBERT reads words in context and reaches 0.8765, +3.4 points over the SVM.
+  The largest gains are on the book categories.</div>
+  <div class="cols">
+    <div class="col">
+      <div class="concept"><b>Concept: transformer and fine-tuning.</b> CamemBERT is a transformer pre-trained on
+      a large amount of French text, so it already knows French. Each word is read together with the words around
+      it, so <i>lot de 5 tomes</i> and <i>lot de jardin</i> are understood differently. Fine-tuning adds a small
+      layer for our 27 categories and trains the whole model a little more on our products.</div>
+      <table>
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Input</td><td>title + description, 128 tokens</td></tr>
+        <tr><td>Epochs, batch size</td><td>2, 16</td></tr>
+        <tr><td>Optimiser</td><td>AdamW, learning rate 0.00005</td></tr>
+        <tr><td>Regularisation</td><td>weight decay 0.01, dropout 0.1</td></tr>
+        <tr><td>Stability</td><td>warmup, linear decay, gradient clipping 1.0</td></tr>
+      </table>
+      <img src="figures/lr.png" style="width:60%;">
+    </div>
+    <div class="col">
+      <img src="figures/loss.png" style="width:100%;">
+      <p class="note">Validation loss keeps falling in both epochs (0.501, then 0.427): no overfitting. In epoch 2 train loss drops a little below it, as each product is seen a second time.</p>
+      <img src="figures/camembert_gain.png" style="width:100%;max-height:95mm;object-fit:contain;">
+    </div>
+  </div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Why no cross-validation for CamemBERT?</p><p class="a">One training run takes about 2 hours on our laptop. We used the standard settings and tuned nothing, so validation only measures the result.</p><p class="q">Why is it better than TF-IDF?</p><p class="a">TF-IDF loses word order and context. Book titles share the same words (tome, édition) but not the same context.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 3.3 &nbsp; 5 NOV</p>
+  <h2>Image models</h2>
+  <div class="main">Images alone are weak (0.48 frozen, 0.70 with ConvNeXt), but their errors differ from text.</div>
+  <div class="cols">
+    <div class="col">
+      <div class="concept"><b>Concept: frozen vs fine-tuned network.</b> A pre-trained image network already
+      recognises shapes and objects. <b>Frozen</b>: only the last layer is trained, fast but limited.
+      <b>Fine-tuned</b>: deeper layers are also trained, so the network adapts to product photos.</div>
+      <img src="figures/image_models.png" style="width:100%;">
+    </div>
+    <div class="col">
+      <img src="figures/image_overfit.png" style="width:85%;">
+      <p class="note">When the whole network is trained, train loss keeps falling but validation loss rises after
+      epoch 1: the model starts to memorise the training images.</p>
+    </div>
+  </div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Why was train loss higher than validation loss for the frozen model?</p><p class="a">Train loss is averaged over the epoch while the model is still learning, and validation loss is measured at the end. With one epoch this gap is expected.</p><p class="q">Why use a model that only scores 0.48 to 0.70?</p><p class="a">Because it fails on different products than text. Combined, it fixes text errors, mainly on books.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 3.3 &nbsp; 5 NOV</p>
+  <h2>Fusion: combining text and image</h2>
+  <div class="main">A Random Forest that learns how to combine the models beats any single model:
+  0.8988.</div>
+  <div class="flow"><div class="box">SVM<br>27 probs</div><span class="arrow">&gt;</span><div class="box">CamemBERT<br>27 probs</div><span class="arrow">&gt;</span><div class="box">Image<br>27 probs</div><span class="arrow">&gt;</span><div class="box">Random Forest<br>81 inputs</div><span class="arrow">&gt;</span><div class="box">Category</div></div>
+  <div class="cols">
+    <div class="col">
+      <div class="concept"><b>Concept: stacking.</b> Each model gives 27 probabilities per product. A second model,
+      here a Random Forest, takes these 81 numbers as input and learns when to trust which model, for example
+      "for books, listen to the image more".</div>
+      <div class="concept"><b>Concept: Random Forest.</b> It trains 300 decision trees on random samples and lets
+      them vote (bagging). We also tried Gradient Boosting (trees trained one after another, each fixing the previous
+      errors): slightly lower and much slower.</div>
+    </div>
+    <div class="col">
+      <div class="concept"><b>Concept: calibration.</b> An SVM gives scores, not probabilities. Calibration learns
+      on the training data how to turn these scores into probabilities, so they can be combined with the other
+      models.</div>
+    </div>
+  </div>
+  <div class="wide"><img src="figures/fusion.png" style="width:100%;max-height:80mm;object-fit:contain;"></div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Is the fusion score optimistic?</p><p class="a">No. The Random Forest is scored with 5-fold cross-validation on the validation products: every product is predicted by a model that never saw it.</p><p class="q">Why keep the SVM if CamemBERT is better?</p><p class="a">They make different errors: CamemBERT reads context, the SVM catches rare exact words. Wargames, CamemBERT's weakest category, gains 7.8 points when both are combined.</p></div>
+</div>
+<div class="page">
+  <p class="step">STEP 3.3 &nbsp; 5 NOV</p>
+  <h2>Interpretability</h2>
+  <div class="main">The text model mostly uses sensible product words, but it also learned seller names and
+  writing style.</div>
+  <div class="cols">
+    <div class="col">
+      <div class="concept"><b>Concept: reading the SVM weights.</b> A linear SVM has one weight per word and
+      category. The highest weights show which words push a product toward a category.</div>
+    </div>
+    <div class="col">
+      <ul>
+        <li>Clear words: <i>piscine</i> for pool, <i>chien</i> for pets, <i>warhammer</i> for wargames.</li>
+        <li>Seller names: <i>sweetheart93</i>, <i>germenly</i>. This works on this data but may not on new sellers.</li>
+        <li>Writing style: new books use summary words (<i>cet ouvrage</i>), used books often have English or
+        German titles.</li>
+        <li>Short titles with no book word (<i>la promenade au parc</i>) give the model nothing to decide with.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="wide"><img src="figures/words.png" style="width:100%;"></div>
+  <div class="qa"><h3>Examiner questions</h3><p class="q">Can the model be trusted on new sellers?</p><p class="a">Partly. Part of its score comes from seller names. It should be monitored on new sellers and retrained regularly.</p></div>
+</div>
+<div class="page">
+  <p class="step">CONCLUSIONS</p>
+  <h2>What we learned</h2>
+  <div class="cols">
+    <div class="col">
+      <h3>Scientific</h3>
+      <ul>
+        <li>Text carries most of the signal. Images alone are weak but help where text is weak.</li>
+        <li>Context matters: CamemBERT beats TF-IDF by 3.4 points, mostly on books.</li>
+        <li>A learned combination beats the best fixed-weight soft voting: 0.8988 against 0.8920.</li>
+        <li>Several "obvious" ideas did not help when measured: text cleaning, and binary TF-IDF with 50000 features.</li>
+      </ul>
+      <h3>Business</h3>
+      <ul>
+        <li>About 9 in 10 products are put in the right category automatically.</li>
+        <li>Low-confidence products, mainly books, should go to a human or ask the seller to confirm.</li>
+        <li>Requiring a description would help: short titles are the main source of errors.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Limits</h3>
+      <ul>
+        <li>Scores are on our validation split, not on Rakuten's hidden test set.</li>
+        <li>CamemBERT settings were not tuned, because each run takes 2 hours.</li>
+        <li>Category names are our guesses; Rakuten does not publish them.</li>
+        <li>Part of the text model relies on seller names.</li>
+      </ul>
+      <h3>Next steps</h3>
+      <ul>
+        <li>Image ensemble (0.72): check how it was built, then test it in the fusion.</li>
+        <li>Train CamemBERT for a third epoch and on longer texts.</li>
+        <li>Streamlit app with confidence levels for each prediction.</li>
+      </ul>
+    </div>
+  </div>
+</div></body></html>
