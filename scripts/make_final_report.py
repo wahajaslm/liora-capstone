@@ -56,12 +56,19 @@ def image_f1(name):
     return json.load(open(OUTPUTS / f"{name}_validation_metrics.json"))["weighted_f1"]
 
 
+def majority_f1():
+    """Weighted F1 when every validation product is given the largest category."""
+    data = pd.read_csv(PROJECT_ROOT / "data/processed/text_train_processed.csv", usecols=["prdtypecode", "split"])
+    y = data.loc[data["split"] == "validation", "prdtypecode"]
+    return f1_score(y, [y.mode()[0]] * len(y), average="weighted")
+
+
 def benchmark_figure(fusion):
     res_base = pd.read_csv(OUTPUTS / "03_1_resnet18_baseline_validation_predictions.csv")
     f1_res_base = f1_score(res_base["true_prdtypecode"], res_base["predicted_prdtypecode"], average="weighted")
 
     rows = [
-        ("Zero-Rule Majority Baseline", 0.0258, "#94a3b8"),
+        ("Zero-Rule Majority Baseline", majority_f1(), "#94a3b8"),
         ("ResNet18, frozen (03)", f1_res_base, IMAGE_COLOR),
         ("ResNet18, full fine-tuning (03_3)", image_f1("03_3_resnet18_full"), IMAGE_COLOR),
         ("ResNet18, augmentation (03_4)", image_f1("03_4_resnet18_regularized"), IMAGE_COLOR),
@@ -201,29 +208,23 @@ def confusion_matrix_figure():
     return save(fig, "fig10_confusion_matrix")
 
 
-def notebook_figure(notebook_relpath, cell, output_idx, name):
-    """Copy a plot of a notebook cell to FIG_DIR."""
-    nb_path = PROJECT_ROOT / notebook_relpath
-    if not nb_path.exists():
-        print(f"Warning: {nb_path} does not exist.")
-        return None
-    nb = json.load(open(nb_path))
-    outputs = nb["cells"][cell].get("outputs", [])
-    if output_idx < len(outputs) and "image/png" in outputs[output_idx].get("data", {}):
-        image_data = outputs[output_idx]["data"]["image/png"]
-        path = FIG_DIR / f"{name}.png"
-        path.write_bytes(base64.b64decode(image_data))
-        print(f"Saved {path}")
-        return path
-    else:
-        # Fallback to finding first image in cell
-        for o in outputs:
-            if "image/png" in o.get("data", {}):
+def notebook_figure(notebook_relpath, marker, name):
+    """Copy the plot of the notebook cell whose code contains `marker` to FIG_DIR.
+
+    Finding the cell by its code keeps this working when cells are added or removed.
+    If the notebook has no saved plot (e.g. not run), the existing figure file is kept.
+    """
+    nb = json.load(open(PROJECT_ROOT / notebook_relpath))
+    for cell in nb["cells"]:
+        if cell["cell_type"] != "code" or marker not in "".join(cell["source"]):
+            continue
+        for output in cell.get("outputs", []):
+            if "image/png" in output.get("data", {}):
                 path = FIG_DIR / f"{name}.png"
-                path.write_bytes(base64.b64decode(o["data"]["image/png"]))
+                path.write_bytes(base64.b64decode(output["data"]["image/png"]))
                 print(f"Saved {path}")
                 return path
-    print(f"Warning: No image found in {notebook_relpath} cell {cell}")
+    print(f"Kept existing {name}.png: no saved plot for '{marker}' in {notebook_relpath}")
     return None
 
 
@@ -235,15 +236,18 @@ def main():
     class_figure()
     gain_figure()
 
-    # Extract Interpretability figures from notebook 05
-    notebook_figure("notebooks/05_interpretability.ipynb", 7, 0, "fig4_book_words")
-    notebook_figure("notebooks/05_interpretability.ipynb", 17, 0, "fig5_fusion_importance")
-    notebook_figure("notebooks/05_interpretability.ipynb", 18, 1, "fig6_image_gain")
+    # Interpretability figures from notebook 05
+    interpretability = "notebooks/05_interpretability.ipynb"
+    notebook_figure(interpretability, "book_codes = [10, 2705, 2403, 2280]", "fig4_book_words")
+    notebook_figure(interpretability, "def word_importance", "fig11_camembert_words")
+    notebook_figure(interpretability, "How much the Random Forest relies on each model", "fig5_fusion_importance")
+    notebook_figure(interpretability, "What the image adds to the fusion", "fig6_image_gain")
 
-    # Extract Grad-CAM figures from notebook 03_8
-    notebook_figure("notebooks/03_image_fineTuning/03_8_image_convnext_gradcam.ipynb", 10, 0, "fig7_gradcam_correct")
-    notebook_figure("notebooks/03_image_fineTuning/03_8_image_convnext_gradcam.ipynb", 13, 0, "fig8_gradcam_errors")
-    notebook_figure("notebooks/03_image_fineTuning/03_8_image_convnext_gradcam.ipynb", 16, 0, "fig9_gradcam_cropping")
+    # Grad-CAM figures from notebook 03_8 (kept as files if the notebook has no saved plots)
+    gradcam = "notebooks/03_image_fineTuning/03_8_image_convnext_gradcam.ipynb"
+    notebook_figure(gradcam, "SUCCESS_ROW_IDS", "fig7_gradcam_correct")
+    notebook_figure(gradcam, "ERROR_ROW_IDS", "fig8_gradcam_errors")
+    notebook_figure(gradcam, "CROP_ROW_ID =", "fig9_gradcam_cropping")
 
     # Generate Confusion Matrix figure if not already present
     if not (FIG_DIR / "fig10_confusion_matrix.png").exists():
