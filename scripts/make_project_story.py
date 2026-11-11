@@ -531,7 +531,7 @@ def build_pages(figs):
       <ul>
         <li>Text carries most of the signal. Images alone are weak but help where text is weak.</li>
         <li>Context matters: CamemBERT beats TF-IDF by 3.4 points, mostly on books.</li>
-        <li>A learned combination beats the best fixed-weight soft voting: {FUSION_BEST_F1:.4f} against 0.8920.</li>
+        <li>A learned combination beats the best soft voting (equal weights): {FUSION_BEST_F1:.4f} against 0.8941.</li>
         <li>Several "obvious" ideas did not help when measured: text cleaning, and binary TF-IDF with 50000 features.</li>
       </ul>
       <h3>Business</h3>
