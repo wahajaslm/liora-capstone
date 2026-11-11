@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rakuten Multimodal Product Classification — Final Report</title>
+<style>
+@page {
+    size: A4;
+    margin: 22mm 18mm 22mm 18mm;
+    @top-right {
+        content: "Rakuten Multimodal Classification | Final Report";
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 7.5pt;
+        color: #9ca3af;
+    }
+    @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 8pt;
+        color: #6b7280;
+    }
+}
+
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1f2937;
+    font-size: 9.5pt;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0;
+}
+
+/* Cover Page */
+.cover {
+    page-break-after: always;
+    padding-top: 35mm;
+}
+
+.cover-badge {
+    display: inline-block;
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-size: 9pt;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+}
+
+.cover-title {
+    font-size: 26pt;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #111827;
+    margin: 0 0 15px 0;
+    border-bottom: 3px solid #991b1b;
+    padding-bottom: 18px;
+}
+
+.cover-subtitle {
+    font-size: 13pt;
+    color: #4b5563;
+    line-height: 1.4;
+    margin: 0 0 40px 0;
+}
+
+.cover-highlights {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #991b1b;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 45mm;
+}
+
+.cover-highlights h3 {
+    margin: 0 0 10px 0;
+    font-size: 11pt;
+    color: #111827;
+}
+
+.cover-highlights ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.cover-highlights li {
+    margin-bottom: 6px;
+    font-size: 9.5pt;
+    color: #374151;
+}
+
+.cover-meta {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 15px;
+    font-size: 9pt;
+    color: #6b7280;
+    display: table;
+    width: 100%;
+}
+
+.cover-meta-col {
+    display: table-cell;
+    vertical-align: top;
+    width: 50%;
+}
+
+.cover-meta-col strong {
+    color: #1f2937;
+}
+
+/* Headings */
+h1 {
+    font-size: 17pt;
+    font-weight: 700;
+    color: #111827;
+    margin: 28px 0 14px 0;
+    border-bottom: 1.5px solid #e5e7eb;
+    padding-bottom: 6px;
+    page-break-after: avoid;
+}
+
+.section-break {
+    page-break-before: always;
+}
+
+h2 {
+    font-size: 12.5pt;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 20px 0 10px 0;
+    page-break-after: avoid;
+}
+
+h3 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: #374151;
+    margin: 14px 0 6px 0;
+    page-break-after: avoid;
+}
+
+p {
+    margin: 0 0 10px 0;
+    text-align: justify;
+}
+
+ul, ol {
+    margin: 0 0 12px 0;
+    padding-left: 22px;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 18px 0;
+    font-size: 8.5pt;
+    page-break-inside: avoid;
+}
+
+th, td {
+    padding: 7px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+th {
+    background-color: #f3f4f6;
+    font-weight: 700;
+    color: #111827;
+    border-top: 1px solid #d1d5db;
+    border-bottom: 1.5px solid #9ca3af;
+}
+
+tr:nth-child(even) td {
+    background-color: #fafafa;
+}
+
+.highlight-row td {
+    background-color: #fef2f2 !important;
+    font-weight: 700;
+    color: #991b1b;
+}
+
+.num-col {
+    text-align: right;
+}
+
+/* Callouts / Alert Boxes */
+.callout {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #3b82f6;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 14px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+}
+
+.callout-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    border-left-color: #16a34a;
+}
+
+.callout-warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    border-left-color: #d97706;
+}
+
+.callout strong {
+    color: #0f172a;
+}
+
+.metric-card-container {
+    display: table;
+    width: 100%;
+    margin: 16px 0;
+    page-break-inside: avoid;
+}
+
+.metric-card {
+    display: table-cell;
+    width: 25%;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.metric-card + .metric-card {
+    border-left: none;
+}
+
+.metric-value {
+    font-size: 16pt;
+    font-weight: 800;
+    color: #991b1b;
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.metric-label {
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+}
+
+.badge-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 7.5pt;
+    font-weight: 600;
+}
+.badge-text { background: #dbeafe; color: #1e40af; }
+.badge-image { background: #fef3c7; color: #92400e; }
+.badge-fusion { background: #dcfce7; color: #166534; }
+
+/* --- FIGURE & IMAGE STYLING --- */
+figure.report-figure {
+    margin: 12px auto 14px auto;
+    text-align: center;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+figure.report-figure img {
+    max-width: 95%;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: block;
+    margin: 0 auto;
+}
+figcaption.report-caption {
+    font-size: 8pt;
+    color: #64748b;
+    margin-top: 6px;
+    text-align: center;
+    font-style: italic;
+    line-height: 1.35;
+    break-before: avoid;
+    page-break-before: avoid;
+}
+
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+    <div class="cover-badge">Final Project Report</div>
+    <div class="cover-title">Multimodal Product Classification for Large-Scale E-Commerce</div>
+    <div class="cover-subtitle">
+        Data audit, text models, image fine-tuning and late fusion on the Rakuten France catalogue
+    </div>
+
+    <div class="cover-highlights">
+        <h3>Key results</h3>
+        <ul>
+            <li><strong>Final model:</strong> a Random Forest on the probabilities of CamemBERT, the SVM and ConvNeXt reaches <strong>0.8988 weighted F1</strong> (<strong>0.8856 macro F1</strong>). That is <strong>+2.22 points</strong> over the best text model and <strong>+19.89 points</strong> over the best image model.</li>
+            <li><strong>Per category:</strong> the fusion is better than CamemBERT alone on <strong>26 of the 27 categories</strong>.</li>
+            <li><strong>Text:</strong> fine-tuned <strong>CamemBERT</strong> reaches <strong>0.8765 weighted F1</strong>, with 22% fewer errors than TF-IDF + LinearSVC (0.8430).</li>
+            <li><strong>Image:</strong> <strong>ConvNeXt-Tiny</strong> with smart white-border cropping and layer-wise learning rates reaches <strong>0.6998 weighted F1</strong>, against 0.4817 for the frozen ResNet18 baseline.</li>
+        </ul>
+    </div>
+
+    <div class="cover-meta">
+        <div class="cover-meta-col">
+            <strong>Dataset:</strong> Rakuten France Multimodal Challenge<br>
+            <strong>Scope:</strong> 84916 products, 27 categories<br>
+            <strong>Authors:</strong> Data Science &amp; Machine Learning Team
+        </div>
+        <div class="cover-meta-col">
+            <strong>Evaluation:</strong> fixed stratified 80/20 split (16984 validation products)<br>
+            <strong>Models:</strong> TF-IDF + SVM, CamemBERT, ConvNeXt-Tiny, Random Forest fusion<br>
+            <strong>Date:</strong> November 2026
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 1 -->
+<h1>1. Summary and Problem</h1>
+
+<p>
+Marketplaces receive millions of product listings from sellers. Each listing must be placed in the right category, or search and browsing suffer. The <strong>Rakuten France Product Classification Challenge</strong> asks to classify listings into <strong>27 categories</strong> (<code>prdtypecode</code>) from their text (title and description) and their image.
+</p>
+
+<div class="metric-card-container">
+    <div class="metric-card">
+        <div class="metric-value">84916</div>
+        <div class="metric-label">Products</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">27</div>
+        <div class="metric-label">Categories</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">35.1%</div>
+        <div class="metric-label">Missing Descriptions</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value">0.8988</div>
+        <div class="metric-label">Final Weighted F1</div>
+    </div>
+</div>
+
+<p>
+Text is the strongest single source. It fails when titles are short, generic or misleading. Images help in exactly those cases, mainly for books, where the cover shows whether a book is new, used or part of a lot. We combine a TF-IDF + SVM model, a fine-tuned CamemBERT and a fine-tuned ConvNeXt image model. A Random Forest learns how to combine their probabilities.
+</p>
+
+<figure class="report-figure">
+    <img src="figures/fig1_benchmark_progression.png" alt="Weighted F1 of all models">
+    <figcaption class="report-caption"><strong>Figure 1:</strong> Weighted F1 of the image models, the text models and the fusion methods, on the same 16984 validation products.</figcaption>
+</figure>
+
+<!-- SECTION 2 -->
+<h1 class="section-break">2. Data Audit</h1>
+
+<h2>2.1 Class Imbalance</h2>
+<p>
+The labelled data contains <strong>84916 products</strong> in 27 categories. The categories are very unbalanced:
+</p>
+<ul>
+    <li>The largest category, <strong>Pool (code 2583)</strong>, has <strong>10209 products</strong> (12.0%).</li>
+    <li>The smallest category, <strong>Wargames (code 1180)</strong>, has <strong>764 products</strong> (0.9%).</li>
+    <li>The ratio is <strong>13.4 to 1</strong>. Accuracy alone would hide errors on small categories, so we report <strong>weighted F1</strong> (the challenge metric) and <strong>macro F1</strong> (every category counts the same).</li>
+</ul>
+
+<figure class="report-figure">
+    <img src="figures/fig2_class_distribution.png" alt="Products per category">
+    <figcaption class="report-caption"><strong>Figure 2:</strong> Number of products per category. Seven categories have fewer than 1000 products.</figcaption>
+</figure>
+
+<h2>2.2 Text: Title and Description</h2>
+<ul>
+    <li><strong>Titles:</strong> every product has a title (<code>designation</code>). The median title has 11 words.</li>
+    <li><strong>Descriptions:</strong> <strong>29800 products (35.1%)</strong> have no description. In Book Lots (2403), 97.4% are missing. For these products, the model relies on the title and the image.</li>
+    <li><strong>HTML noise:</strong> encoded HTML characters (such as <code>&amp;amp;</code>, <code>&amp;eacute;</code>) appear in 41.3% of descriptions, and HTML tags in 18.4%.</li>
+    <li><strong>Repeated titles:</strong> 4187 products (4.9%) share a title with another product. 160 of these groups contain more than one category.</li>
+</ul>
+
+<h2>2.3 Images</h2>
+<ul>
+    <li><strong>Coverage:</strong> every product has an image. The sampled images are all 500 &times; 500 pixel RGB JPEGs.</li>
+    <li><strong>White borders:</strong> many images show a small product in the middle of a large white background. Resizing the full image makes the product very small.</li>
+    <li><strong>Duplicates:</strong> some different products share the exact same image file (for example placeholder images). They are found with a SHA-256 hash of the file.</li>
+</ul>
+
+<!-- SECTION 3 -->
+<h1>3. Preprocessing and Shared Split</h1>
+
+<div class="callout callout-warning">
+    <strong>One split for all models:</strong> a single stratified <strong>80/20 train/validation split</strong> (67932 training products, 16984 validation products) is used by every text, image and fusion model. Settings are chosen on the training part only. The validation part is used for the final scores.
+</div>
+
+<h2>3.1 Text</h2>
+<ol>
+    <li><strong>HTML decoding:</strong> entities such as <code>&amp;eacute;</code> and <code>&amp;amp;</code> are turned back into characters (<em>é</em>, <em>&amp;</em>).</li>
+    <li><strong>Tag removal:</strong> HTML tags are removed, with a space in their place so words do not merge.</li>
+    <li><strong>Lowercase and spaces:</strong> text is lowercased and repeated spaces are collapsed. Numbers, units and model codes are kept.</li>
+    <li><strong>Combination:</strong> title and description are joined into one text (<code>text_combined</code>). If there is no description, only the title is used.</li>
+</ol>
+
+<h2>3.2 Images</h2>
+<p>
+Images stay in their original files. A manifest (<code>image_split_clean.csv</code>) lists each image with its split and the SHA-256 hash of its file. Training images whose file also appears in validation are removed, so the same image cannot be in both parts. The white-border crop is computed when the image is loaded.
+</p>
+
+<!-- SECTION 4 -->
+<h1 class="section-break">4. Text Models</h1>
+
+<h2>4.1 Choosing the Classifier</h2>
+<p>
+The text is turned into TF-IDF vectors of words and word pairs (binary weighting, all features). Three classifiers were compared with 3-fold cross-validation on the training part:
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Classifier</th>
+            <th class="num-col">CV weighted F1</th>
+            <th>Observation</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Complement Naive Bayes</td>
+            <td class="num-col">0.7600</td>
+            <td>Fast, but 7 points below the SVM</td>
+        </tr>
+        <tr>
+            <td>Logistic Regression (SGD)</td>
+            <td class="num-col">0.8084</td>
+            <td>Gives probabilities, 2 points below the SVM</td>
+        </tr>
+        <tr class="highlight-row">
+            <td><strong>LinearSVC</strong></td>
+            <td class="num-col"><strong>0.8284</strong></td>
+            <td>Best; kept as the classic text model</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>4.2 Tuning the SVM</h2>
+<ul>
+    <li><strong>No feature limit:</strong> there are 460326 words and word pairs. The baseline kept only 50000. Using all of them adds 1.2 points (cross-validation on train).</li>
+    <li><strong>Binary TF-IDF:</strong> a word counts once, however often it is repeated. This stops sellers' repeated keywords from dominating. It adds 0.5 points, more than the cross-validation spread (0.3).</li>
+    <li><strong>Regularisation:</strong> a grid search over C (0.1, 0.5, 1, 2) chose C = 1. Only C = 0.1 is clearly worse.</li>
+    <li><strong>Probabilities:</strong> LinearSVC gives scores, not probabilities. <code>CalibratedClassifierCV</code> (3 folds, sigmoid) turns them into probabilities for the fusion.</li>
+</ul>
+<p>
+On validation, the tuned SVM reaches <strong>0.8436 weighted F1</strong>, against 0.8313 for the baseline. With calibration it reaches <strong>0.8430</strong> (macro F1 0.8326).
+</p>
+
+<h2>4.3 CamemBERT</h2>
+<p>
+To read words in context, we fine-tuned <strong>CamemBERT</strong> (<code>almanach/camembert-base</code>, 110 million parameters), a French language model trained on the French part of the OSCAR web corpus.
+</p>
+
+<div class="callout callout-success">
+    <strong>Training setup:</strong> 2 epochs on the 67932 training texts, batch size 16, AdamW with learning rate 5 &times; 10<sup>&minus;5</sup> and weight decay 0.01, linear warmup over the first 6% of steps, then linear decay. Texts are cut at 128 tokens.
+</div>
+
+<ul>
+    <li><strong>Epoch 1:</strong> training loss falls from 2.64 to 0.58. Validation loss 0.501, weighted F1 <strong>0.8527</strong>.</li>
+    <li><strong>Epoch 2:</strong> training loss ends at 0.34. Validation loss 0.427, weighted F1 <strong>0.8765</strong>, macro F1 <strong>0.8594</strong>.</li>
+    <li>Validation loss still falls in epoch 2, so the model is not overfitting.</li>
+</ul>
+
+<h3>CamemBERT against the SVM</h3>
+<p>
+CamemBERT makes <strong>2082 errors</strong> against <strong>2656</strong> for the SVM (21.6% fewer). The largest gains are on the book categories: Used Books +12.3 points, Magazines +10.9, New Books +10.7, Book Lots +10.0. The SVM stays better on Wargames (&minus;8.4 points for CamemBERT), where rare exact words such as <em>warhammer</em> and <em>heroclix</em> decide.
+</p>
+
+<!-- SECTION 5 -->
+<h1 class="section-break">5. Image Models</h1>
+
+<p>
+Classifying products from images alone is hard: packaging looks alike and many images have large white borders. Over several experiments, the image model moved from a frozen ResNet18 to a fully fine-tuned ConvNeXt-Tiny.
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Experiment</th>
+            <th>Backbone</th>
+            <th>Main change</th>
+            <th class="num-col">Weighted F1</th>
+            <th class="num-col">Macro F1</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Baseline (03)</td>
+            <td>ResNet18</td>
+            <td>Frozen backbone, only the last layer trained</td>
+            <td class="num-col">0.4817</td>
+            <td class="num-col">0.4230</td>
+        </tr>
+        <tr>
+            <td>Full fine-tuning (03_3)</td>
+            <td>ResNet18</td>
+            <td>All layers trained</td>
+            <td class="num-col">0.6281</td>
+            <td class="num-col">0.5943</td>
+        </tr>
+        <tr>
+            <td>Regularisation (03_4)</td>
+            <td>ResNet18</td>
+            <td>Augmentation and regularisation</td>
+            <td class="num-col">0.6235</td>
+            <td class="num-col">0.5876</td>
+        </tr>
+        <tr>
+            <td>Vision Transformer (03_6)</td>
+            <td>ViT-B/16</td>
+            <td>Self-attention on 16 &times; 16 image patches</td>
+            <td class="num-col">0.6386</td>
+            <td class="num-col">0.5982</td>
+        </tr>
+        <tr>
+            <td>Stronger CNNs (03_5)</td>
+            <td>ConvNeXt-Tiny</td>
+            <td>Modern CNN backbone</td>
+            <td class="num-col">0.6739</td>
+            <td class="num-col">0.6458</td>
+        </tr>
+        <tr class="highlight-row">
+            <td><strong>Optimised ConvNeXt (03_7)</strong></td>
+            <td><strong>ConvNeXt-Tiny</strong></td>
+            <td><strong>Smart white-border crop, layer-wise learning rates, balanced sampling, flip TTA</strong></td>
+            <td class="num-col"><strong>0.6998</strong></td>
+            <td class="num-col"><strong>0.6752</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>5.1 What Makes the Final Image Model Better</h2>
+<ol>
+    <li><strong>Smart white-border crop:</strong> if the product covers less than 75% of the image, a square window around the product is cut out at its original resolution (at least 224 pixels). The product is no longer shrunk with its white border. Photos that fill the frame are left unchanged.</li>
+    <li><strong>Layer-wise learning rates:</strong> the whole network is trained, with four learning rates: early layers 1 &times; 10<sup>&minus;5</sup>, stage 3 3 &times; 10<sup>&minus;5</sup>, stage 4 8 &times; 10<sup>&minus;5</sup>, head 1 &times; 10<sup>&minus;4</sup>, with cosine annealing.</li>
+    <li><strong>Balanced sampling and TTA:</strong> a weighted sampler (power 0.25) shows small categories more often. At prediction time, the image and its mirror image are averaged (test-time augmentation). This raises weighted F1 from 0.6980 to 0.6998.</li>
+</ol>
+
+<!-- SECTION 6 -->
+<h1 class="section-break">6. Text and Image Fusion</h1>
+
+<p>
+Text and images have different strengths: text names the product and its details, while the image shows its shape and condition. We combine the models at the level of their predicted probabilities (late fusion).
+</p>
+
+<h2>6.1 Fusion Methods</h2>
+<p>
+For each of the 16984 validation products, every model gives 27 probabilities, one per category. None of the models was trained on these products.
+</p>
+<ul>
+    <li><strong><em>P</em><sub>SVM</sub>:</strong> calibrated probabilities of the tuned LinearSVC (weighted F1 0.8430).</li>
+    <li><strong><em>P</em><sub>CamemBERT</sub>:</strong> softmax probabilities of CamemBERT (0.8765).</li>
+    <li><strong><em>P</em><sub>ConvNeXt</sub>:</strong> softmax probabilities of the optimised ConvNeXt-Tiny (0.6998).</li>
+</ul>
+<p>
+Every fusion method is scored with 5-fold cross-validation on the validation products: it is set up on 4/5 of them and predicts the remaining 1/5.
+</p>
+<ol>
+    <li><strong>Soft voting:</strong> average the probabilities, then take the category with the highest average.
+        <ul>
+            <li><em>Equal weights:</em> each of the three models counts 1/3.</li>
+            <li><em>Weighted:</em> each model gets its own weight (steps of 0.1, summing to 1), chosen on the 4/5 part.</li>
+        </ul>
+    </li>
+    <li><strong>Random Forest (stacking):</strong> the three probability vectors are joined into 81 inputs ([<em>P</em><sub>CamemBERT</sub> &vert;&vert; <em>P</em><sub>SVM</sub> &vert;&vert; <em>P</em><sub>ConvNeXt</sub>]). A Random Forest (300 trees) learns from them which model to trust for which category.</li>
+</ol>
+
+<h2>6.2 Results</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Model</th>
+            <th>Input</th>
+            <th class="num-col">Weighted F1</th>
+            <th class="num-col">Macro F1</th>
+            <th class="num-col">Gain vs CamemBERT</th>
+            <th class="num-col">Errors</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>ConvNeXt-Tiny</td>
+            <td><span class="badge-tag badge-image">Image</span></td>
+            <td class="num-col">0.6998</td>
+            <td class="num-col">0.6752</td>
+            <td class="num-col">&minus;17.67</td>
+            <td class="num-col">5043</td>
+        </tr>
+        <tr>
+            <td>Calibrated LinearSVC</td>
+            <td><span class="badge-tag badge-text">Text</span></td>
+            <td class="num-col">0.8430</td>
+            <td class="num-col">0.8326</td>
+            <td class="num-col">&minus;3.35</td>
+            <td class="num-col">2656</td>
+        </tr>
+        <tr>
+            <td>Weighted soft voting (SVM + image)</td>
+            <td><span class="badge-tag badge-fusion">Fusion</span></td>
+            <td class="num-col">0.8640</td>
+            <td class="num-col">0.8548</td>
+            <td class="num-col">&minus;1.25</td>
+            <td class="num-col">2278</td>
+        </tr>
+        <tr>
+            <td>CamemBERT</td>
+            <td><span class="badge-tag badge-text">Text</span></td>
+            <td class="num-col">0.8765</td>
+            <td class="num-col">0.8594</td>
+            <td class="num-col">Reference</td>
+            <td class="num-col">2082</td>
+        </tr>
+        <tr>
+            <td>Weighted soft voting (CamemBERT + image)</td>
+            <td><span class="badge-tag badge-fusion">Fusion</span></td>
+            <td class="num-col">0.8882</td>
+            <td class="num-col">0.8730</td>
+            <td class="num-col">+1.16</td>
+            <td class="num-col">1875</td>
+        </tr>
+        <tr>
+            <td>Weighted soft voting (all 3)</td>
+            <td><span class="badge-tag badge-fusion">Fusion</span></td>
+            <td class="num-col">0.8920</td>
+            <td class="num-col">0.8797</td>
+            <td class="num-col">+1.54</td>
+            <td class="num-col">1813</td>
+        </tr>
+        <tr>
+            <td>Soft voting, equal weights (all 3)</td>
+            <td><span class="badge-tag badge-fusion">Fusion</span></td>
+            <td class="num-col">0.8941</td>
+            <td class="num-col">0.8826</td>
+            <td class="num-col">+1.76</td>
+            <td class="num-col">1776</td>
+        </tr>
+        <tr class="highlight-row">
+            <td><strong>Random Forest (all 3)</strong></td>
+            <td><span class="badge-tag badge-fusion">Fusion</span></td>
+            <td class="num-col"><strong>0.8988</strong></td>
+            <td class="num-col"><strong>0.8856</strong></td>
+            <td class="num-col"><strong>+2.22</strong></td>
+            <td class="num-col"><strong>1715</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<ul>
+    <li><strong>Soft voting already gives most of the gain:</strong> equal weights on the three models reach 0.8941.</li>
+    <li><strong>Choosing the weights does not help:</strong> weighted soft voting (0.8920) is slightly below equal weights. The weights chosen on 4/5 of the products do not transfer exactly to the last 1/5.</li>
+    <li><strong>The Random Forest adds 0.5 points more</strong> (0.8988), because it can trust a different model for each category.</li>
+</ul>
+
+<h2>6.3 Per Category</h2>
+<ul>
+    <li><strong>Against CamemBERT:</strong> the Random Forest is better on <strong>26 of the 27 categories</strong>. Only Baby Socks (1301) drops slightly (&minus;0.3 points).</li>
+    <li><strong>Books:</strong> the largest gains are New Books (+10.8 points) and Used Books (+9.9). The cover image shows whether a book is new or used, which the text often does not say.</li>
+    <li><strong>Wargames (1180):</strong> CamemBERT's weakest category (F1 0.614) rises to 0.706 (+9.3 points). The SVM catches the rare exact words (<em>warhammer</em>, <em>heroclix</em>).</li>
+    <li><strong>Against weighted soft voting:</strong> the Random Forest makes 98 fewer errors and is better on 18 of 27 categories, mostly books (New Books +4.2, Used Books +3.1).</li>
+</ul>
+
+<figure class="report-figure">
+    <img src="figures/fig3_multimodal_synergy_delta.png" alt="F1 gain of the fusion per category">
+    <figcaption class="report-caption"><strong>Figure 3:</strong> F1 gain of the Random Forest fusion over CamemBERT alone, per category. Only Baby Socks is slightly lower.</figcaption>
+</figure>
+
+<!-- SECTION 7 -->
+<h1 class="section-break">7. Interpretability</h1>
+
+<h2>7.1 Text: What the SVM Relies On</h2>
+<ul>
+    <li><strong>Clear product words:</strong> most categories have sensible top words, such as <em>piscine</em> and <em>intex</em> for Pool, <em>chien</em> and <em>laisse</em> for Pets, <em>warhammer</em> and <em>heroclix</em> for Wargames.</li>
+    <li><strong>Seller names and writing style:</strong> some top words are seller or brand names (<em>sweetheart93</em>, <em>cdaffaires</em>). New Books relies on words from book summaries (<em>ce livre</em>, <em>auteur</em>). This works on this data but may not hold for new sellers.</li>
+    <li><strong>Why books get confused:</strong> each book category has a few strong words (<em>lot</em> and <em>tomes</em> for Book Lots, dates for Magazines). Common book words such as <em>roman</em> have almost the same weight in all four. A short book title without a strong word gives the model little to decide with.</li>
+</ul>
+
+<figure class="report-figure">
+    <img src="figures/fig4_book_words.png" alt="Top SVM words for the four book categories">
+    <figcaption class="report-caption"><strong>Figure 4:</strong> Highest SVM weights for the four book categories. Each category has a few strong words; common book words are shared.</figcaption>
+</figure>
+
+<h2>7.2 Fusion: What the Random Forest Relies On</h2>
+<ul>
+    <li><strong>Importance:</strong> the Random Forest relies mostly on CamemBERT (about two thirds of the importance), then on the SVM (23%), then on the image (11%).</li>
+    <li><strong>Image contribution:</strong> without the image, the fusion scores 0.8873. With it, 0.8988 (+1.2 points).</li>
+    <li><strong>Where the image matters:</strong> it adds almost all of its gain on New Books (+11.4 points) and Used Books (+10.1), and helps on Games (+4.3). On most other categories it adds little.</li>
+</ul>
+
+<figure class="report-figure">
+    <img src="figures/fig5_fusion_importance.png" alt="Random Forest importance per model">
+    <figcaption class="report-caption"><strong>Figure 5:</strong> Share of the Random Forest importance that comes from each model's probabilities.</figcaption>
+</figure>
+
+<figure class="report-figure">
+    <img src="figures/fig6_image_gain.png" alt="What the image adds per category" style="width: 70%;">
+    <figcaption class="report-caption"><strong>Figure 6:</strong> F1 of the Random Forest with the image minus without the image, per category (same 5-fold cross-validation).</figcaption>
+</figure>
+
+<!-- SECTION 8 -->
+<h1 class="section-break">8. Recommendations and Conclusion</h1>
+
+<h2>8.1 Which Model to Use</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Need</th>
+            <th>Model</th>
+            <th class="num-col">Weighted F1</th>
+            <th>What it needs</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Cheap and fast</strong></td>
+            <td>Calibrated LinearSVC (text only)</td>
+            <td class="num-col">0.8430</td>
+            <td>CPU only; trains in minutes.</td>
+        </tr>
+        <tr>
+            <td><strong>Simple fusion</strong></td>
+            <td>Soft voting, equal weights (all 3)</td>
+            <td class="num-col">0.8941</td>
+            <td>The three models; no extra model to train.</td>
+        </tr>
+        <tr>
+            <td><strong>Best accuracy</strong></td>
+            <td><strong>Random Forest (all 3)</strong></td>
+            <td class="num-col"><strong>0.8988</strong></td>
+            <td>The three models plus a Random Forest trained on their probabilities.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>8.2 Conclusion</h2>
+<p>
+Text carries most of the information, and CamemBERT is the best single model. The image adds a check where text is weak, mainly for books. Combining the three models through a Random Forest gives <strong>0.8988 weighted F1</strong> on the 16984 validation products. Simple soft voting with equal weights comes close (0.8941) and is easier to run.
+</p>
+
+<div class="callout callout-success" style="margin-top: 25px;">
+    <strong>Reproducibility:</strong> the notebooks (<code>01</code> to <code>05</code>), the processed data, the saved probabilities and the script that builds this report (<code>scripts/make_final_report.py</code>) are in the repository. Model checkpoints are too large for git and are shared separately.
+</div>
+
+</body>
+</html>
