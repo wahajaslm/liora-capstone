@@ -23,7 +23,7 @@ contourpy<1.4
 seaborn>=0.13.0
 
 # Web Application Demo
-streamlit>=1.30.0
+streamlit>=1.50.0
 
 # Development & Notebooks
 jupyter>=1.0.0

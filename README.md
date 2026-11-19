@@ -70,7 +70,25 @@ rakuten-multimodal-classification/
    pip install -r requirements.txt
    ```
 
-4. **Launch Streamlit Demo:**
+4. **Get the trained models (needed for the Model Inference page):**
+
+   The models are not in git. They are trained on the confidential challenge
+   data, so they are only shared inside the team.
+
+   - CamemBERT and ConvNeXt: ask the team for `rakuten_models.zip`, then unzip
+     it in the repository root:
+     ```bash
+     unzip rakuten_models.zip
+     ```
+     This creates `models/camembert/` and
+     `models/outputs/03_7_convnext_tiny_optimized_best.pt`.
+   - LinearSVC: build it from the data (a few minutes):
+     ```bash
+     python scripts/export_svm.py
+     ```
+     This creates `models/svm_tfidf_calibrated.joblib`.
+
+5. **Launch Streamlit Demo:**
    ```bash
    streamlit run app/streamlit_app.py
    ```

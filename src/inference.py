@@ -1,6 +1,7 @@
 """Local inference using the preprocessing of the existing training notebooks."""
 from pathlib import Path
 
+import joblib
 import numpy as np
 import torch
 from PIL import Image
@@ -13,6 +14,7 @@ from src.categories import CATEGORY_NAMES
 from src.text_utils import clean_text, combine_text
 
 PROJECT_ROOT     = Path(__file__).resolve().parents[1]
+SVM_MODEL_PATH   = PROJECT_ROOT / "models/svm_tfidf_calibrated.joblib"
 TEXT_MODEL_DIR   = PROJECT_ROOT / "models/camembert"
 IMAGE_MODEL_PATH = PROJECT_ROOT / "models/outputs/03_7_convnext_tiny_optimized_best.pt"
 # train_camembert.py assigns indices in ascending prdtypecode order.
@@ -115,6 +117,32 @@ class ImagePredictor:
         return image_scores
 
 
-def fuse_scores(text_scores, image_scores):
-    """Equal-weight fusion of the aligned, checked model outputs."""
-    return (text_scores + image_scores) / 2
+class SVMPredictor:
+    """Load the calibrated TF-IDF + LinearSVC pipeline independently."""
+
+    def __init__(self):
+        if not SVM_MODEL_PATH.exists():
+            raise FileNotFoundError(
+                f"Missing {SVM_MODEL_PATH.name}. Run scripts/export_svm.py to export it."
+            )
+        self.pipeline = joblib.load(SVM_MODEL_PATH)
+        classes = [int(code) for code in self.pipeline.classes_]
+        if set(classes) != set(CLASS_CODES):
+            raise ValueError("LinearSVC class mapping does not match the project's 27 classes.")
+        code_to_index = {code: index for index, code in enumerate(classes)}
+        self.class_order = [code_to_index[code] for code in CLASS_CODES]
+
+    def predict(self, title: str, description: str):
+        text = combine_text(clean_text(title), clean_text(description))
+        scores = self.pipeline.predict_proba([text])[0][self.class_order]
+        if not np.isfinite(scores).all():
+            raise ValueError("LinearSVC returned invalid scores. Check the exported pipeline.")
+        return scores
+
+
+def fuse_scores(*score_arrays):
+    """Equal-weight soft-voting fusion of aligned model probability vectors."""
+    valid = [np.asarray(scores, dtype=float) for scores in score_arrays if scores is not None]
+    if not valid:
+        raise ValueError("At least one score array is required for fusion.")
+    return np.mean(valid, axis=0)
